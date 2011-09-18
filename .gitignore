@@ -3,8 +3,10 @@ Makefile
 Makefile.old
 Build
 _build*
+.build*
 pm_to_blib*
 *.tar.gz
 .lwpcookies
 Net-eNom-*
 cover_db
+*#*

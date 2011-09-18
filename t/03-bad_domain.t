@@ -8,9 +8,8 @@ my $enom = Net::eNom->new(
 	password => 'resellpw',
 	test     => 1
 );
-my $response = $enom->Check( Domain => 'enom.*1' );
-is_deeply(
-	$response->{Domain},
-	[qw/enom.us/],
-	'Domain check returned sensible response.'
-);
+throws_ok {
+	$enom->Check( Domain => 'enomfoo' ) }
+	qr/does not look like/,
+	'Malformed domain exception caught.'
+;
