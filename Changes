@@ -1,6 +1,8 @@
 Revision history for Net-eNom
 
-v0.3.0-TRIAL 2011-09-18
+{{$NEXT}}
+
+v0.3.0    2011-09-18
              - Tested and built with with Dist::Zilla
                  - Failing POD-related tests are now release tests
              - Added support for eNom API version 6.4
