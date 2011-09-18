@@ -12,6 +12,14 @@ use XML::Simple 'XMLin';
 
 requires '_make_query_string';
 
+=begin Pod::Coverage
+
+ \w+
+
+=end Pod::Coverage
+
+=cut
+
 # Create methods to support eNom API version 6.4:
 my @commands = qw/
 	AddBulkDomains AddContact AddDomainFolder AddToCart AdvancedDomainSearch
