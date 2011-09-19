@@ -1,15 +1,18 @@
 Revision history for Net-eNom
 
 {{$NEXT}}
+          - Add direct access to the eNom response type parameter
+          - Fix spelling in comments
+          - Remove needless recommended prereq
 
 v0.3.0    2011-09-18
-             - Tested and built with with Dist::Zilla
-                 - Failing POD-related tests are now release tests
-             - Added support for eNom API version 6.4
-             - Mo(?:o|u)sified
+          - Test and build with with Dist::Zilla
+              - POD-related tests are now release tests
+          - Add support for eNom API version 6.4
+          - Mo(?:o|u)sify
 
-0.02         2009-12-22
-             Don't separate "Domain" when the command actually wants "Domain"
+0.02      2009-12-22
+          Don't separate "Domain" when the command actually wants "Domain"
 
-0.01         2009-12-22
-             First version, released on an unsuspecting world.
+0.01      2009-12-22
+          First version, released on an unsuspecting world.

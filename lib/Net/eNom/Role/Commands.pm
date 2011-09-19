@@ -86,18 +86,21 @@ for my $command (@commands) {
 			my ( $self, @args ) = @ARG;
 			my $uri = $self->_make_query_string( $command, @args );
 
-			my $data = get($uri);
+			my $response = get $uri;
 
-			my $response = XMLin( $data, SuppressEmpty => undef );
-			$response->{errors} &&= [ values %{ $response->{errors} } ];
-			$response->{responses} &&= $response->{responses}{response};
-			$response->{responses} = [ $response->{responses} ]
+			my $response_type = $self->response_type;
+			if ( $response_type eq 'xml_simple' ) {
+				$response = XMLin( $response, SuppressEmpty => undef );
+				$response->{errors} &&= [ values %{ $response->{errors} } ];
+				$response->{responses} &&= $response->{responses}{response};
+				$response->{responses} = [ $response->{responses} ]
 					if $response->{ResponseCount} == 1;
-			for ( keys %$response ) {
-				next unless /(.*?)(\d+)$/x;
-				$response->{$1}[ $2 - 1 ] = delete $response->{$ARG};
+				for ( keys %$response ) {
+					next unless /(.*?)(\d+)$/x;
+					$response->{$1}[ $2 - 1 ] = delete $response->{$ARG};
+				}
 			}
-			$response;
+			return $response;
 		}
 	);
 }
