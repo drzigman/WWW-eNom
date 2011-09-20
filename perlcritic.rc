@@ -1,3 +1,5 @@
-severity = 1
+severity = 3
 verbose  = 9
-theme    = moose
+theme    = core || moose
+exclude  = Subroutines::ProhibitUnusedPrivateSubroutines
+include  = Variables::ProhibitPackageVars
