@@ -9,7 +9,7 @@ my $enom = Net::eNom->new(
 	test     => 1
 );
 throws_ok {
-	$enom->Check( Domain => 'enomfoo' ) }
-	qr/does not look like/,
+	$enom->Check( Domain => 'enomfoo' )
+	} qr/does not look like/,
 	'Malformed domain exception caught.'
 ;

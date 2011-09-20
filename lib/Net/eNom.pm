@@ -158,13 +158,13 @@ sub _build_uri {
 
 =head2 AddBulkDomains (and many others)
 
-    my $response = $enom->AddBulkDomains(
-        ProductType => "register",
-        ListCount => 1,
-        SLD1 => "myspiffynewdomain",
-        TLD1 => "com",
-        UseCart => 1
-    );
+	my $response = $enom->AddBulkDomains(
+		ProductType => 'register',
+		ListCount   => 1,
+		SLD1        => 'myspiffynewdomain',
+		TLD1        => 'com',
+		UseCart     => 1
+	);
 
 Performs the specified command - see the eNom API users guide
 (https://www.enom.com/resellers/APICommandCatalogEnom.pdf) for the commands
@@ -173,11 +173,11 @@ and their arguments.
 For convenience, if you pass the 'Domain' argument, it will be split
 into 'SLD' and 'TLD'; that is, you can say
 
-    my $response = $enom->Check(SLD => 'myspiffynewdomain', TLD => 'com' );
+	my $response = $enom->Check( SLD => 'myspiffynewdomain', TLD => 'com' );
 
 or
 
-    my $response = $enom->Check( Domain => 'myspiffynewdomain.com' );
+	my $response = $enom->Check( Domain => 'myspiffynewdomain.com' );
 
 The default return value is a Perl hash (via L<XML::Simple>) representing the
 response XML from the eNom API; the only differences are
@@ -232,8 +232,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Net::eNom
-
+	perldoc Net::eNom
 
 You can also look for information at:
 
@@ -256,7 +255,6 @@ L<http://cpanratings.perl.org/d/Net-eNom>
 L<http://search.cpan.org/dist/Net-eNom/>
 
 =back
-
 
 =head1 ACKNOWLEDGEMENTS
 

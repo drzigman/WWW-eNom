@@ -1,6 +1,12 @@
 Revision history for Net-eNom
 
 {{$NEXT}}
+
+v0.3.2    2011-09-20
+          - Here-and-there whitespace cleanup
+          - Taken out of trial mode
+
+v0.3.1    2011-09-19
           - Add direct access to the eNom response type parameter
           - Fix spelling in comments
           - Remove needless recommended prereq
