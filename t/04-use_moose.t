@@ -12,4 +12,4 @@ lives_ok {
 		password => 'resellpw',
 		test     => 1,
 	)
-} "Constructed with Moose instead of Mouse."
+} 'Used guts from a Moose instead of a Mouse.'
