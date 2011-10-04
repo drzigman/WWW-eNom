@@ -1,4 +1,4 @@
-package Net::eNom::Role::Commands;
+package WWW::eNom::Role::Commands;
 
 use Any::Moose 'Role';
 use strict;

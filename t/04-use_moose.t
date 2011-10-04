@@ -4,10 +4,10 @@ use Test::Most tests => 2;
 BEGIN {
 	eval { require Moose };
 	plan skip_all => 'Moose required for testing' if $@;
-	use_ok 'Net::eNom';
+	use_ok 'WWW::eNom';
 }
 lives_ok {
-	Net::eNom->new(
+	WWW::eNom->new(
 		username => 'resellid',
 		password => 'resellpw',
 		test     => 1,

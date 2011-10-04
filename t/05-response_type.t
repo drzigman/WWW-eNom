@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
 
 use Test::Most tests => 3;
-use Net::eNom;
+use WWW::eNom;
 
 throws_ok {
-	Net::eNom->new(
+	WWW::eNom->new(
 		username      => 'resellid',
 		password      => 'resellpw',
 		test          => 1,
@@ -14,7 +14,7 @@ throws_ok {
 
 my $enom;
 lives_ok {
-	$enom = Net::eNom->new(
+	$enom = WWW::eNom->new(
 		username      => 'resellid',
 		password      => 'resellpw',
 		test          => 1,

@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
 use Test::Most tests => 3;
-use Net::eNom;
+use WWW::eNom;
 
-my $enom = Net::eNom->new(
+my $enom = WWW::eNom->new(
 	username => 'resellid',
 	password => 'resellpw',
 	test     => 1

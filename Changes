@@ -1,20 +1,27 @@
 Revision history for Net-eNom
 
 {{$NEXT}}
+          - Renamed main module to WWW::eNom
+              -Net::eNom is now a thin wrapper around WWW::eNom
+          - Normalized version number
+          - Improved test coverage
+          - Added version requirement for ParseUtil::Domain to account for new eNom TLD offerings
+
+0.032     2011-09-20
           - Here-and-there whitespace cleanup
-          - Fix version number
+          - Fixed version number
           - Taken out of trial mode
 
 v0.3.1    2011-09-19
-          - Add direct access to the eNom response type parameter
-          - Fix spelling in comments
-          - Remove needless recommended prereq
+          - Added direct access to the eNom response type parameter
+          - Fixed spelling in comments
+          - Removed needless recommended prereq
 
 v0.3.0    2011-09-18
-          - Test and build with with Dist::Zilla
+          - Tested and built with with Dist::Zilla
               - POD-related tests are now release tests
-          - Add support for eNom API version 6.4
-          - Mo(?:o|u)sify
+          - Added support for eNom API version 6.4
+          - Mo(?:o|u)sified
 
 0.02      2009-12-22
           Don't separate "Domain" when the command actually wants "Domain"
