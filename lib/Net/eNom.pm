@@ -1,4 +1,5 @@
-package Net::eNom;
+package
+Net::eNom;
 
 use strict;
 use warnings;
