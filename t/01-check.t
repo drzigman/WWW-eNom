@@ -4,17 +4,17 @@ use Test::Most tests => 3;
 use WWW::eNom;
 
 my $enom = WWW::eNom->new(
-	username => 'resellid',
-	password => 'resellpw',
+	username => "resellid",
+	password => "resellpw",
 	test     => 1
 );
-my $response = $enom->Check( Domain => 'enom.*1' );
+my $response = $enom->Check( Domain => "enom.*1" );
 cmp_deeply(
 	$response->{Domain},
-	['enom.us'],
-	'Domain check returned sensible response.'
+	[ qw(enom.com enom.net enom.org enom.info enom.biz) ],
+	"Domain check returned sensible response."
 );
-$response = $enom->Check( DomainFFFFFF => 'enom.*1' );
+$response = $enom->Check( DomainFFFFFF => "enom.*1" );
 is(
 	$response->{ErrCount},
 	1,
@@ -22,6 +22,6 @@ is(
 );
 cmp_deeply(
 	$response->{errors},
-	['An SLD and TLD must be entered'],
-	'Domain check with missing parameter returned an error response.'
+	["An SLD and TLD must be entered"],
+	"Domain check with missing parameter returned an error response."
 );

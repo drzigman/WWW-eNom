@@ -1,12 +1,11 @@
-package
-Net::eNom;
+package Net::eNom;
 
 use strict;
 use warnings;
 use utf8;
 use Any::Moose;
 
-extends 'WWW::eNom';
+extends "WWW::eNom";
 
 # VERSION
 

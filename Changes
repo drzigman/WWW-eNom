@@ -1,8 +1,11 @@
-Revision history for Net-eNom
+Revision history for WWW-eNom
 
 {{$NEXT}}
+	- Fixed test failures caused by undocument API changes
+	- Moved distribution from Net-eNom to WWW-eNom
+	- Changed license to LGPL 3.0
 
-v1.0.1    2011-10-23 01:21:53 America/Indiana/Tell_City
+v1.0.1    2011-10-23 01:21:53 America/Chicago
 	- Added Mouse version requirement to prevent failing compile test in Perl v5.15
 
 v1.0.0    2011-10-03 23:17:37 America/Chicago
