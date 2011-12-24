@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.0.2    2011-12-23 21:33:19 CST6CDT
 	- Fixed test failures caused by undocument API changes
 	- Moved distribution from Net-eNom to WWW-eNom
 	- Changed license to LGPL 3.0
