@@ -8,5 +8,6 @@ use Any::Moose;
 extends "WWW::eNom";
 
 # VERSION
+# ABSTRACT: Deprecated: namespace retired
 
 1;

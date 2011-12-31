@@ -1,16 +1,15 @@
 package WWW::eNom::Role::Commands;
 
-use Any::Moose 'Role';
+use Any::Moose "Role";
 use strict;
 use warnings;
 use utf8;
-use English '-no_match_vars';
-use LWP::Simple 'get';
-use XML::Simple 'XMLin';
+use LWP::UserAgent;
+use XML::Simple qw(XMLin);
 
 # VERSION
 
-requires '_make_query_string';
+requires "_make_query_string";
 
 =begin Pod::Coverage
 
@@ -21,7 +20,7 @@ requires '_make_query_string';
 =cut
 
 # Create methods to support eNom API version 6.4:
-my @commands = qw/
+my @commands = qw(
 	AddBulkDomains AddContact AddDomainFolder AddToCart AdvancedDomainSearch
 	AssignToDomainFolder AuthorizeTLD CertConfigureCert CertGetApproverEmail
 	CertGetCertDetail CertGetCerts CertModifyOrder CertParseCSR CertPurchaseCert
@@ -78,26 +77,26 @@ my @commands = qw/
 	UpdatePushList UpdateRenewalSettings ValidatePassword WBLConfigure
 	WBLGetCategories WBLGetFields WBLGetStatus WSC_GetAccountInfo
 	WSC_GetAllPackages WSC_GetPricing WSC_Update_Ops
-/;
+);
 
+my $ua = LWP::UserAgent->new;
 for my $command (@commands) {
 	__PACKAGE__->meta->add_method(
 		$command => sub {
-			my ( $self, @args ) = @ARG;
+			my ( $self, @args ) = @_;
 			my $uri = $self->_make_query_string( $command, @args );
-
-			my $response = get $uri;
+			my $response = $ua->get($uri)->content;
 
 			my $response_type = $self->response_type;
-			if ( $response_type eq 'xml_simple' ) {
+			if ( $response_type eq "xml_simple" ) {
 				$response = XMLin( $response, SuppressEmpty => undef );
 				$response->{errors} &&= [ values %{ $response->{errors} } ];
 				$response->{responses} &&= $response->{responses}{response};
 				$response->{responses} = [ $response->{responses} ]
 					if $response->{ResponseCount} == 1;
-				for ( keys %$response ) {
+				for ( keys %{$response} ) {
 					next unless /(.*?)(\d+)$/x;
-					$response->{$1}[ $2 - 1 ] = delete $response->{$ARG};
+					$response->{$1}[ $2 - 1 ] = delete $response->{$_};
 				}
 			}
 			return $response;

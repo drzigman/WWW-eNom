@@ -2,13 +2,11 @@ package WWW::eNom;
 
 use strict;
 use warnings;
-use re "/x";
 use utf8;
+use re "/x";
 use Any::Moose;
 use Any::Moose "::Util::TypeConstraints";
 use Carp qw(croak);
-use Data::Validate::Domain qw(is_domain);
-use English -no_match_vars;
 use List::MoreUtils qw(any);
 use ParseUtil::Domain qw(parse_domain);
 use URI;
@@ -23,8 +21,8 @@ my @response_types = qw/xml_simple xml html text/;
 subtype "eNomResponseType"
 	=> as "Str",
 	=> where {
-		my $type = $ARG;
-		any { $type eq $ARG } @response_types
+		my $type = $_;
+		any { $type eq $_ } @response_types
 	},
 	=> message {
 		 "response_type must be one of: " . join( ", ", @response_types )
@@ -54,29 +52,30 @@ has response_type => (
 has _uri => (
 	isa        => "URI",
 	is         => "ro",
-	required   => 1,
-	lazy_build => 1,
-	builder    => "_build_uri"
+	lazy_build => 1
 );
 
 sub _make_query_string {
-	my ( $self, $command, %args ) = @ARG;
+	my ( $self, $command, %args ) = @_;
 	my $uri = $self->_uri;
-	if ( $command ne "CertGetApproverEmail" and my $domain = delete $args{Domain} ) {
+	if (
+		$command ne "CertGetApproverEmail"
+		and my $domain = delete $args{Domain}
+	) {
 		my $test_domain = $domain;
 
 		# Look for an eNom wildcard TLD:
 		my $wildcard_tld = qr{\.([*12@]+$)};
 		my ($subbed_tld) = $test_domain =~ $wildcard_tld;
 		$test_domain =~ s/$wildcard_tld/.com/ if $subbed_tld;
-		croak "Domain name does not look like a domain." if not is_domain($test_domain);
-		my $parsed = parse_domain($test_domain);
+		my $parsed = eval { parse_domain($test_domain) };
+		croak qq[Domain name, "$parsed", does not look like a domain.] if $@;
 
 		# Done testing; substitute TLD back in if necessary:
 		$parsed->{zone} = $subbed_tld if $subbed_tld;
 
 		# Finally, add in the neccesary API arguments:
-		@args{ qw(SLD TLD) } = @$parsed{ qw(domain zone) };
+		@args{qw(SLD TLD)} = @{$parsed}{qw(domain zone)};
 	}
 	my $response_type = $self->response_type;
 	$response_type = "xml" if $response_type eq "xml_simple";
@@ -90,7 +89,7 @@ sub _make_query_string {
 	return $uri;
 }
 
-sub _build_uri {
+sub _build__uri {
 	my $self = shift;
 	my $test = "http://resellertest.enom.com/interface.asp";
 	my $live = "http://reseller.enom.com/interface.asp";
@@ -105,6 +104,10 @@ __PACKAGE__->meta->make_immutable;
 __END__
 
 =encoding utf8
+
+=head1 NAME
+
+Net::eNom - Interact with eNom, Inc.'s reseller API
 
 =head1 SYNOPSIS
 
