@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.0.3    2011-12-31 04:29:09 CST6CDT
 	- Fixed pod
 	- Removed unneeded dependencies
 
