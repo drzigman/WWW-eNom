@@ -4,8 +4,9 @@ use Any::Moose "Role";
 use strict;
 use warnings;
 use utf8;
-use LWP::UserAgent;
-use XML::Simple qw(XMLin);
+use English -no_match_vars;
+use HTTP::Tiny;
+use XML::LibXML::Simple qw(XMLin);
 
 # VERSION
 
@@ -76,32 +77,25 @@ my @commands = qw(
 	UpdateExpiredDomains UpdateMetaTag UpdateNameServer UpdateNotificationAmount
 	UpdatePushList UpdateRenewalSettings ValidatePassword WBLConfigure
 	WBLGetCategories WBLGetFields WBLGetStatus WSC_GetAccountInfo
-	WSC_GetAllPackages WSC_GetPricing WSC_Update_Ops
-);
+	WSC_GetAllPackages WSC_GetPricing WSC_Update_Ops);
 
-my $ua = LWP::UserAgent->new;
+my $ua = HTTP::Tiny->new;
 for my $command (@commands) {
 	__PACKAGE__->meta->add_method(
 		$command => sub {
-			my ( $self, @args ) = @_;
+			my ( $self, @args ) = @ARG;
 			my $uri = $self->_make_query_string( $command, @args );
-			my $response = $ua->get($uri)->content;
-
+			my $response = $ua->get($uri)->{content};
 			my $response_type = $self->response_type;
 			if ( $response_type eq "xml_simple" ) {
-				$response = XMLin( $response, SuppressEmpty => undef );
+				$response = XMLin($response);
 				$response->{errors} &&= [ values %{ $response->{errors} } ];
 				$response->{responses} &&= $response->{responses}{response};
 				$response->{responses} = [ $response->{responses} ]
 					if $response->{ResponseCount} == 1;
 				for ( keys %{$response} ) {
 					next unless /(.*?)(\d+)$/x;
-					$response->{$1}[ $2 - 1 ] = delete $response->{$_};
-				}
-			}
-			return $response;
-		}
-	);
-}
-
+					$response->{$1} = undef if ref $response->{$ARG};
+					$response->{$1}[ $2 - 1 ] = delete $response->{$ARG} } }
+			return $response } ) }
 1;

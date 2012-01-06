@@ -4,10 +4,10 @@ use strict;
 use warnings;
 use utf8;
 use re "/x";
+use English -no_match_vars;
 use Any::Moose;
 use Any::Moose "::Util::TypeConstraints";
 use Carp qw(croak);
-use List::MoreUtils qw(any);
 use ParseUtil::Domain qw(parse_domain);
 use URI;
 
@@ -21,47 +21,38 @@ my @response_types = qw/xml_simple xml html text/;
 subtype "eNomResponseType"
 	=> as "Str",
 	=> where {
-		my $type = $_;
-		any { $type eq $_ } @response_types
-	},
+		my $type = $ARG;
+		{ $type eq $ARG and return 1 for @response_types; 0 } },
 	=> message {
-		 "response_type must be one of: " . join( ", ", @response_types )
-	}
-;
+		 "response_type must be one of: " . join ", ", @response_types };
 
 has username => (
 	isa      => "Str",
 	is       => "ro",
-	required => 1
-);
+	required => 1 );
 has password => (
 	isa      => "Str",
 	is       => "ro",
-	required => 1
-);
+	required => 1 );
 has test => (
 	isa     => "Bool",
 	is      => "ro",
-	default => 0
-);
+	default => 0 );
 has response_type => (
 	isa     => "eNomResponseType",
 	is      => "ro",
-	default => "xml_simple"
-);
+	default => "xml_simple" );
 has _uri => (
-	isa        => "URI",
-	is         => "ro",
-	lazy_build => 1
-);
+	isa     => "URI",
+	is      => "ro",
+	lazy    => 1,
+	default => \&_default__uri );
 
 sub _make_query_string {
-	my ( $self, $command, %args ) = @_;
+	my ( $self, $command, %opts ) = @_;
 	my $uri = $self->_uri;
-	if (
-		$command ne "CertGetApproverEmail"
-		and my $domain = delete $args{Domain}
-	) {
+	if ( $command ne "CertGetApproverEmail"
+	     and my $domain = delete $opts{Domain} ) {
 		my $test_domain = $domain;
 
 		# Look for an eNom wildcard TLD:
@@ -75,8 +66,7 @@ sub _make_query_string {
 		$parsed->{zone} = $subbed_tld if $subbed_tld;
 
 		# Finally, add in the neccesary API arguments:
-		@args{qw(SLD TLD)} = @{$parsed}{qw(domain zone)};
-	}
+		@opts{qw(SLD TLD)} = @{$parsed}{qw(domain zone)} }
 	my $response_type = $self->response_type;
 	$response_type = "xml" if $response_type eq "xml_simple";
 	$uri->query_form(
@@ -84,18 +74,14 @@ sub _make_query_string {
 		uid          => $self->username,
 		pw           => $self->password,
 		responseType => $response_type,
-		%args
-	);
-	return $uri;
-}
+		%opts );
+	return $uri; }
 
-sub _build__uri {
-	my $self = shift;
+sub _default__uri {
+	my ($self) = @ARG;
 	my $test = "http://resellertest.enom.com/interface.asp";
 	my $live = "http://reseller.enom.com/interface.asp";
-	my $uri  = URI->new( $self->test ? $test : $live );
-	return $uri;
-}
+	return URI->new( $self->test ? $test : $live ) }
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,6 +1,9 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+	- Fixed failing test due to contact email change on cpan.org whois
+	- Further reduced depedencies
+	- Traded XML::Simple for XML::LibXML::Simple
 
 v1.0.3    2011-12-31 04:29:09 CST6CDT
 	- Fixed pod
