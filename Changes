@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.0.4    2012-01-05 18:12:08 CST6CDT
 	- Fixed failing test due to contact email change on cpan.org whois
 	- Further reduced depedencies
 	- Traded XML::Simple for XML::LibXML::Simple
