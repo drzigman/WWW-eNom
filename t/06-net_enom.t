@@ -1,7 +1,9 @@
 #!/usr/bin/env perl
 
 use Test::Most tests => 2;
-use ok "Net::eNom";
+
+warning_is { require Net::eNom }
+	"This module is deprecated; use WWW::eNom instead.";
 
 my $enom = Net::eNom->new(
 	username => "resellid",
