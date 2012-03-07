@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.1.0    2012-03-06 19:01:26 CST6CDT
 	- Removed ParseUtil::Domain dependency in favor of Mozilla::PublicSuffix
 	- Fixed POD to show correct license (LGPL v3.0)
 	- Other minor POD fixes
