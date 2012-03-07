@@ -5,11 +5,10 @@ use warnings;
 use utf8;
 use Any::Moose;
 
-use base "WWW::eNom";
+use parent "WWW::eNom";
 
 warnings::warnif(
-	deprecated => "This module is deprecated; use WWW::eNom instead."
-);
+	deprecated => "This module is deprecated; use WWW::eNom instead." );
 
 # VERSION
 # ABSTRACT: DEPRECATED: namespace retired

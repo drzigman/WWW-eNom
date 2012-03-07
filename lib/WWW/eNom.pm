@@ -3,11 +3,10 @@ package WWW::eNom;
 use strict;
 use warnings;
 use utf8;
-use English -no_match_vars;
 use Any::Moose;
 use Any::Moose "::Util::TypeConstraints";
-use Carp qw(croak);
-use ParseUtil::Domain qw(parse_domain);
+use Carp ();
+use Mozilla::PublicSuffix "public_suffix";
 use URI;
 
 # VERSION
@@ -20,8 +19,8 @@ my @response_types = qw(xml_simple xml html text);
 subtype "eNomResponseType"
 	=> as "Str",
 	=> where {
-		my $type = $ARG;
-		{ $type eq $ARG and return 1 for @response_types; 0 } },
+		my $type = $_;
+		{ $type eq $_ and return 1 for @response_types; 0 } },
 	=> message {
 		 "response_type must be one of: " . join ", ", @response_types };
 
@@ -50,22 +49,21 @@ has _uri => (
 sub _make_query_string {
 	my ( $self, $command, %opts ) = @_;
 	my $uri = $self->_uri;
-	if ( $command ne "CertGetApproverEmail"
-	     and my $domain = delete $opts{Domain} ) {
-		my $test_domain = $domain;
-
+	( $command ne "CertGetApproverEmail" && exists $opts{Domain} ) and do {
+		my $domain = delete $opts{Domain};
 		# Look for an eNom wildcard TLD:
 		my $wildcard_tld = qr{\.([*12@]+$)}x;
-		my ($subbed_tld) = $test_domain =~ $wildcard_tld;
-		$test_domain =~ s/$wildcard_tld/.com/x if $subbed_tld;
-		my $parsed = eval { parse_domain($test_domain) };
-		croak qq[Domain name, "$parsed", does not look like a domain.] if $@;
-
-		# Done testing; substitute TLD back in if necessary:
-		$parsed->{zone} = $subbed_tld if $subbed_tld;
+		my ($subbed_tld) = $domain =~ $wildcard_tld
+			and $domain =~ s/$wildcard_tld/.com/x;
+		my $suffix = eval { public_suffix($domain) };
+		Carp::croak("Domain name, $domain, does not look like a valid domain.")
+			if not $suffix;
 
 		# Finally, add in the neccesary API arguments:
-		@opts{qw(SLD TLD)} = @{$parsed}{qw(domain zone)} }
+		my ($sld) = $domain =~ /(.+)\.$suffix/x;
+		$suffix = $subbed_tld if $subbed_tld;
+		@opts{qw(SLD TLD)} = ($sld, $suffix); };
+
 	my $response_type = $self->response_type;
 	$response_type = "xml" if $response_type eq "xml_simple";
 	$uri->query_form(
@@ -77,7 +75,7 @@ sub _make_query_string {
 	return $uri; }
 
 sub _default__uri {
-	my ($self) = @ARG;
+	my ($self) = @_;
 	my $test = "http://resellertest.enom.com/interface.asp";
 	my $live = "http://reseller.enom.com/interface.asp";
 	return URI->new( $self->test ? $test : $live ) }
@@ -92,7 +90,7 @@ __END__
 
 =head1 NAME
 
-Net::eNom - Interact with eNom, Inc.'s reseller API
+WWW::eNom - Interact with eNom, Inc.'s reseller API
 
 =head1 SYNOPSIS
 
@@ -201,23 +199,15 @@ in "RRPText" or "responses"; it's not exactly consistent.
 As of v1.0.0, this module has been renamed to WWW::eNom. Net::eNom is now a thin
 wrapper to preserve backward compatibility.
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 Richard Simões, C<< <rsimoes AT cpan DOT org> >>
-Simon Cozens, C<< <simon AT simon-cozens DOT org> >>
 
-=head1 ACKNOWLEDGEMENTS
-
-Thanks to the UK Free Software Network (http://www.ukfsn.org/) for their
-support of this module's development. For free-software-friendly hosting
-and other Internet services, try UKFSN.
+Original version by Simon Cozens.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2011 Simon Cozens and Richard Simões.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU Lesser General Public License as
-published by the Free Software Foundation; or any compatible license.
-
-See http://dev.perl.org/licenses/ for more information.
+Copyright © 2012 Richard Simões. This module is released under the terms of the
+L<GNU Lesser General Public License v. 3.0|http://gnu.org/licenses/lgpl.html>
+and may be modified and/or redistributed under the same or any compatible
+license.

@@ -4,7 +4,6 @@ use Any::Moose "Role";
 use strict;
 use warnings;
 use utf8;
-use English -no_match_vars;
 use HTTP::Tiny;
 use XML::LibXML::Simple qw(XMLin);
 
@@ -83,8 +82,8 @@ my $ua = HTTP::Tiny->new;
 for my $command (@commands) {
 	__PACKAGE__->meta->add_method(
 		$command => sub {
-			my ( $self, @args ) = @ARG;
-			my $uri = $self->_make_query_string( $command, @args );
+			my ( $self, @opts ) = @_;
+			my $uri = $self->_make_query_string( $command, @opts );
 			my $response = $ua->get($uri)->{content};
 			my $response_type = $self->response_type;
 			if ( $response_type eq "xml_simple" ) {
@@ -95,7 +94,7 @@ for my $command (@commands) {
 					if $response->{ResponseCount} == 1;
 				for ( keys %{$response} ) {
 					next unless /(.*?)(\d+)$/x;
-					$response->{$1} = undef if ref $response->{$ARG};
-					$response->{$1}[ $2 - 1 ] = delete $response->{$ARG} } }
+					$response->{$1} = undef if ref $response->{$_};
+					$response->{$1}[ $2 - 1 ] = delete $response->{$_} } }
 			return $response } ) }
 1;
