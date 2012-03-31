@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 use Any::Moose;
 
-use parent "WWW::eNom";
+extends "WWW::eNom";
 
 warnings::warnif(
 	deprecated => "This module is deprecated; use WWW::eNom instead." );
