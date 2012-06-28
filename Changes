@@ -1,64 +1,67 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Untabified all code.
+    - Replaced Test::Most bundle with only the test modules actually used.
+    - Changed license to MIT.
 
 v1.1.1    2012-03-30 20:26:44 America/Chicago
-	- Remove parent.pm dependency
+    - Remove parent.pm dependency
 
 v1.1.0    2012-03-06 19:01:26 America/Chicago
-	- Removed ParseUtil::Domain dependency in favor of Mozilla::PublicSuffix
-	- Fixed POD to show correct license (LGPL v3.0)
-	- Other minor POD fixes
+    - Removed ParseUtil::Domain dependency in favor of Mozilla::PublicSuffix
+    - Fixed POD to show correct license (LGPL v3.0)
+    - Other minor POD fixes
 
 v1.0.6    2012-01-16 08:35:24 America/Chicago
-	- Increased version requirement of ParseUtil::Domain to 2.10
+    - Increased version requirement of ParseUtil::Domain to 2.10
 
 v1.0.5    2012-01-06 21:21:20 America/Chicago
-	- Removed "re" pragma option introduced in Perl v5.14
-	- Add deprecation notice to Net::eNom
+    - Removed "re" pragma option introduced in Perl v5.14
+    - Add deprecation notice to Net::eNom
 
 v1.0.4    2012-01-05 18:12:08 America/Chicago
-	- Fixed failing test due to contact email change on cpan.org whois
-	- Further reduced depedencies
-	- Traded XML::Simple for XML::LibXML::Simple
+    - Fixed failing test due to contact email change on cpan.org whois
+    - Further reduced depedencies
+    - Traded XML::Simple for XML::LibXML::Simple
 
 v1.0.3    2011-12-31 04:29:09 America/Chicago
-	- Fixed pod
-	- Removed unneeded dependencies
+    - Fixed pod
+    - Removed unneeded dependencies
 
 v1.0.2    2011-12-23 21:33:19 America/Chicago
-	- Fixed test failures caused by undocument eNom API changes
-	- Moved distribution from Net-eNom to WWW-eNom
-	- Changed license to LGPL 3.0
+    - Fixed test failures caused by undocument eNom API changes
+    - Moved distribution from Net-eNom to WWW-eNom
+    - Changed license to LGPL 3.0
 
 v1.0.1    2011-10-23 01:21:53 America/Chicago
-	- Added Mouse version requirement to prevent failing compile test in Perl v5.15
+    - Added Mouse version requirement to prevent failing compile test in Perl v5.15
 
 v1.0.0    2011-10-03 23:17:37 America/Chicago
-	- Renamed main module to WWW::eNom
-		-Net::eNom is now a thin wrapper around WWW::eNom
-	- Normalized version number
-	- Improved test coverage
-	- Added version requirement for ParseUtil::Domain to account for new eNom TLD offerings
+    - Renamed main module to WWW::eNom
+        -Net::eNom is now a thin wrapper around WWW::eNom
+    - Normalized version number
+    - Improved test coverage
+    - Added version requirement for ParseUtil::Domain to account for new eNom TLD offerings
 
 0.032     2011-09-20
-	- Here-and-there whitespace cleanup
-	- Fixed version number
-	- Taken out of trial mode
+    - Here-and-there whitespace cleanup
+    - Fixed version number
+    - Taken out of trial mode
 
 v0.3.1    2011-09-19
-	- Added direct access to the eNom response type parameter
-	- Fixed spelling in comments
-	- Removed needless recommended prereq
+    - Added direct access to the eNom response type parameter
+    - Fixed spelling in comments
+    - Removed needless recommended prereq
 
 v0.3.0    2011-09-18
-	- Tested and built with with Dist::Zilla
-		- POD-related tests are now release tests
-	- Added support for eNom API version 6.4
-	- Mo(?:o|u)sified
+    - Tested and built with with Dist::Zilla
+        - POD-related tests are now release tests
+    - Added support for eNom API version 6.4
+    - Mo(?:o|u)sified
 
 0.02      2009-12-22
-	Don't separate "Domain" when the command actually wants "Domain"
+    Don't separate "Domain" when the command actually wants "Domain"
 
 0.01      2009-12-22
-	First version, released on an unsuspecting world.
+    First version, released on an unsuspecting world.

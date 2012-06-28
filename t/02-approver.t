@@ -1,15 +1,16 @@
 #!/usr/bin/env perl
 
-use Test::Most tests => 1;
+use strict;
+use warnings FATAL => "all";
+use Test::More tests => 1;
 use WWW::eNom;
 
 my $enom = WWW::eNom->new(
-	username => "resellid",
-	password => "resellpw",
-	test     => 1 );
+    username => "resellid",
+    password => "resellpw",
+    test     => 1 );
 
 my $response = $enom->CertGetApproverEmail( Domain => "cpan.org" );
-is(
-	$response->{CertGetApproverEMail}{Approver}[0]{ApproverEmail},
-	q"eashton@mac.com",
-	"Found CPAN domain admin" );
+is( $response->{CertGetApproverEMail}{Approver}[0]{ApproverEmail},
+    q"eashton@mac.com",
+    "Found CPAN domain admin" );
