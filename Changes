@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.1.2    2012-06-28 09:20:55 America/Chicago
     - Untabified all code.
     - Replaced Test::Most bundle with only the test modules actually used.
     - Changed license to MIT.
