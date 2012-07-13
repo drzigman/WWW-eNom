@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 use Any::Moose;
 use Any::Moose "::Util::TypeConstraints";
-use Carp ();
+use Carp;
 use Mozilla::PublicSuffix "public_suffix";
 use URI;
 
@@ -47,22 +47,22 @@ has _uri => (
     default => \&_default__uri );
 
 sub _make_query_string {
-    my ( $self, $command, %opts ) = @_;
+    my ($self, $command, %opts) = @_;
     my $uri = $self->_uri;
-    ( $command ne "CertGetApproverEmail" && exists $opts{Domain} ) and do {
+    if ( $command ne "CertGetApproverEmail" && exists $opts{Domain} ) {
         my $domain = delete $opts{Domain};
         # Look for an eNom wildcard TLD:
-        my $wildcard_tld = qr{\.([*12@]+$)}x;
+        my $wildcard_tld = qr{\.([*12@]+)$}x;
         my ($subbed_tld) = $domain =~ $wildcard_tld
             and $domain =~ s/$wildcard_tld/.com/x;
         my $suffix = eval { public_suffix($domain) };
-        Carp::croak("Domain name, $domain, does not look like a valid domain.")
+        croak("Domain name, $domain, does not look like a valid domain.")
             if not $suffix;
 
         # Finally, add in the neccesary API arguments:
-        my ($sld) = $domain =~ /(.+)\.$suffix/x;
+        my ($sld) = $domain =~ /^(.+)\.$suffix$/x;
         $suffix = $subbed_tld if $subbed_tld;
-        @opts{qw(SLD TLD)} = ($sld, $suffix); };
+        @opts{qw(SLD TLD)} = ($sld, $suffix) }
 
     my $response_type = $self->response_type;
     $response_type = "xml" if $response_type eq "xml_simple";
@@ -72,7 +72,7 @@ sub _make_query_string {
         pw           => $self->password,
         responseType => $response_type,
         %opts );
-    return $uri; }
+    return $uri }
 
 sub _default__uri {
     my ($self) = @_;
