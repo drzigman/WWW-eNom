@@ -27,24 +27,29 @@ subtype "eNomResponseType"
 has username => (
     isa      => "Str",
     is       => "ro",
-    required => 1 );
+    required => 1
+);
 has password => (
     isa      => "Str",
     is       => "ro",
-    required => 1 );
+    required => 1
+);
 has test => (
     isa     => "Bool",
     is      => "ro",
-    default => 0 );
+    default => 0
+);
 has response_type => (
     isa     => "eNomResponseType",
     is      => "ro",
-    default => "xml_simple" );
+    default => "xml_simple"
+);
 has _uri => (
     isa     => "URI",
     is      => "ro",
     lazy    => 1,
-    default => \&_default__uri );
+    default => \&_default__uri
+);
 
 sub _make_query_string {
     my ($self, $command, %opts) = @_;
@@ -55,9 +60,9 @@ sub _make_query_string {
         my $wildcard_tld = qr{\.([*12@]+)$}x;
         my ($subbed_tld) = $domain =~ $wildcard_tld
             and $domain =~ s/$wildcard_tld/.com/x;
-        my $suffix = eval { public_suffix($domain) };
-        croak("Domain name, $domain, does not look like a valid domain.")
-            if not $suffix;
+        my $suffix = eval { public_suffix($domain) }
+            or croak "Domain name, $domain, does not look like a valid domain.";
+
 
         # Finally, add in the neccesary API arguments:
         my ($sld) = $domain =~ /^(.+)\.$suffix$/x;
@@ -71,14 +76,17 @@ sub _make_query_string {
         uid          => $self->username,
         pw           => $self->password,
         responseType => $response_type,
-        %opts );
-    return $uri }
+        %opts
+    );
+    return $uri;
+}
 
 sub _default__uri {
     my ($self) = @_;
     my $test = "http://resellertest.enom.com/interface.asp";
     my $live = "http://reseller.enom.com/interface.asp";
-    return URI->new( $self->test ? $test : $live ) }
+    return URI->new( $self->test ? $test : $live );
+}
 
 __PACKAGE__->meta->make_immutable;
 

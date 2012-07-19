@@ -37,25 +37,26 @@ my @commands = qw(
     GetDomainInfo GetDomainMap GetDomainNameID GetDomainPhone GetDomains
     GetDomainServices GetDomainSLDTLD GetDomainSRVHosts GetDomainStatus
     GetDomainSubServices GetDotNameForwarding GetExpiredDomains GetExtAttributes
-    GetExtendInfo GetForwarding GetGlobalChangeStatus GetGlobalChangeStatusDetail
-    GetHomeDomainList GetHosts GetIPResolver GetMailHosts GetMetaTag
-    GetOrderDetail GetOrderList GetPasswordBit GetPOP3 GetPOPExpirations
-    GetPOPForwarding GetRegHosts GetRegistrationStatus GetRegLock GetRenew
-    GetReport GetResellerInfo GetSPFHosts GetServiceContact GetSubAccountDetails
-    GetSubAccountPassword GetSubAccounts GetSubaccountsDetailList GetTLDList
-    GetTransHistory GetWebHostingAll GetWhoisContact GetWPPSInfo
-    GM_CancelSubscription GM_CheckDomain GM_GetCancelReasons
-    GM_GetControlPanelLoginURL GM_GetRedirectScript GM_GetStatuses
-    GM_GetSubscriptionDetails GM_GetSubscriptions GM_ReactivateSubscription
-    GM_RenewSubscription GM_UpdateBillingCycle GM_UpdateSubscriptionDetails
-    IM_UpdateSourceDomain InsertNewOrder ModifyNS ModifyNSHosting ModifyPOP3
-    NameSpinner ParseDomain PE_GetCustomerPricing PE_GetDomainPricing
-    PE_GetPOPPrice PE_GetProductPrice PE_GetResellerPrice PE_GetRetailPrice
-    PE_GetRetailPricing PE_GetRocketPrice PE_GetTLDID PE_SetPricing Preconfigure
-    Purchase PurchaseHosting PurchasePOPBundle PurchasePreview PurchaseServices
-    PushDomain RC_CancelSubscription RC_FreeTrialCheck RC_GetLoginToken
-    RC_GetSubscriptionDetails RC_GetSubscriptions RC_RebillSubscription
-    RC_ResetPassword RC_SetBillingCycle RC_SetPassword RC_SetSubscriptionDomain
+    GetExtendInfo GetForwarding GetGlobalChangeStatus
+    GetGlobalChangeStatusDetail GetHomeDomainList GetHosts GetIPResolver
+    GetMailHosts GetMetaTag GetOrderDetail GetOrderList GetPasswordBit GetPOP3
+    GetPOPExpirations GetPOPForwarding GetRegHosts GetRegistrationStatus
+    GetRegLock GetRenew GetReport GetResellerInfo GetSPFHosts GetServiceContact
+    GetSubAccountDetails GetSubAccountPassword GetSubAccounts
+    GetSubaccountsDetailList GetTLDList GetTransHistory GetWebHostingAll
+    GetWhoisContact GetWPPSInfo GM_CancelSubscription GM_CheckDomain
+    GM_GetCancelReasons GM_GetControlPanelLoginURL GM_GetRedirectScript
+    GM_GetStatuses GM_GetSubscriptionDetails GM_GetSubscriptions
+    GM_ReactivateSubscription GM_RenewSubscription GM_UpdateBillingCycle
+    GM_UpdateSubscriptionDetails IM_UpdateSourceDomain InsertNewOrder ModifyNS
+    ModifyNSHosting ModifyPOP3 NameSpinner ParseDomain PE_GetCustomerPricing
+    PE_GetDomainPricing PE_GetPOPPrice PE_GetProductPrice PE_GetResellerPrice
+    PE_GetRetailPrice PE_GetRetailPricing PE_GetRocketPrice PE_GetTLDID
+    PE_SetPricing Preconfigure Purchase PurchaseHosting PurchasePOPBundle
+    PurchasePreview PurchaseServices PushDomain RC_CancelSubscription
+    RC_FreeTrialCheck RC_GetLoginToken RC_GetSubscriptionDetails
+    RC_GetSubscriptions RC_RebillSubscription RC_ResetPassword
+    RC_SetBillingCycle RC_SetPassword RC_SetSubscriptionDomain
     RC_SetSubscriptionName RefillAccount RegisterNameServer RemoveTLD
     RemoveUnsyncedDomains RenewPOPBundle RenewServices RP_CancelAccount
     RP_GetAccountDetail RP_GetAccounts RP_GetUpgradeOptions RP_GetUpgradePrice
@@ -76,14 +77,15 @@ my @commands = qw(
     UpdateExpiredDomains UpdateMetaTag UpdateNameServer UpdateNotificationAmount
     UpdatePushList UpdateRenewalSettings ValidatePassword WBLConfigure
     WBLGetCategories WBLGetFields WBLGetStatus WSC_GetAccountInfo
-    WSC_GetAllPackages WSC_GetPricing WSC_Update_Ops);
+    WSC_GetAllPackages WSC_GetPricing WSC_Update_Ops
+);
 
 my $ua = HTTP::Tiny->new;
 for my $command (@commands) {
     __PACKAGE__->meta->add_method(
         $command => sub {
-            my ( $self, @opts ) = @_;
-            my $uri = $self->_make_query_string( $command, @opts );
+            my ($self, @opts) = @_;
+            my $uri = $self->_make_query_string($command, @opts);
             my $response = $ua->get($uri)->{content};
             my $response_type = $self->response_type;
             if ( $response_type eq "xml_simple" ) {
@@ -92,9 +94,16 @@ for my $command (@commands) {
                 $response->{responses} &&= $response->{responses}{response};
                 $response->{responses} = [ $response->{responses} ]
                     if $response->{ResponseCount} == 1;
-                for ( keys %{$response} ) {
-                    next unless /(.*?)(\d+)$/x;
-                    $response->{$1} = undef if ref $response->{$_};
-                    $response->{$1}[ $2 - 1 ] = delete $response->{$_} } }
-            return $response } ) }
+                foreach my $key ( keys %{$response} ) {
+                    next unless $key =~ /(.*?)(\d+)$/x;
+                    $response->{$1} = undef
+                        if ref $response->{$key};
+                    $response->{$1}[ $2 - 1 ] = delete $response->{$key};
+                }
+            }
+            return $response;
+        }
+    );
+}
+
 1;
