@@ -13,7 +13,7 @@ my $enom = WWW::eNom->new(
 my $response = $enom->Check( Domain => "enom.*1" );
 cmp_deeply(
     $response->{Domain},
-    [ qw(enom.com enom.net enom.org enom.info enom.biz) ],
+    [ qw(enom.com enom.net enom.org enom.info enom.biz enom.us) ],
     "Domain check returned sensible response." );
 $response = $enom->Check( DomainFFFFFF => "enom.*1" );
 is( $response->{ErrCount}, 1,
