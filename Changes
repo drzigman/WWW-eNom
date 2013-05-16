@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Brought tests up to date to match latest eNom response (thanks to
+      drzigman).
 
 v1.1.2    2012-06-28 09:20:55 America/Chicago
     - Untabified all code.
