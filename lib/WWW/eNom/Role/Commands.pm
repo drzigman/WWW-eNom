@@ -33,7 +33,7 @@ my @commands = qw(
     GetAllAccountInfo GetAllDomains GetBalance GetCartContent GetCatchAll
     GetCerts GetConfirmationSettings GetContacts GetCusPreferences
     GetCustomerDefinedData GetCustomerPaymentInfo GetDNS GetDNSStatus
-    GetDomainCount GetDomainExp GetDomainFolderDetail GetDomainFolderList
+    GetDomainAuthInfo GetDomainCount GetDomainExp GetDomainFolderDetail GetDomainFolderList
     GetDomainInfo GetDomainMap GetDomainNameID GetDomainPhone GetDomains
     GetDomainServices GetDomainSLDTLD GetDomainSRVHosts GetDomainStatus
     GetDomainSubServices GetDotNameForwarding GetExpiredDomains GetExtAttributes
