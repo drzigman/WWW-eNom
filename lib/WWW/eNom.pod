@@ -52,8 +52,8 @@ the return of string responses straight from the eNom API. These options are:
         TLD1        => "com",
         UseCart     => 1 );
 
-Performs the specified command - see the eNom API users guide
-(https://www.enom.com/resellers/APICommandCatalogEnom.pdf) for the commands
+Performs the specified command - see the
+L<eNom API users guide|http://www.enom.com/APICommandCatalog/> for the commands
 and their arguments.
 
 For convenience, if you pass the "Domain" argument, it will be split
@@ -85,15 +85,18 @@ Keys which end with a number are transformed into an array
 =back
 
 So for instance, a command C<Check( Domain => "enom.@" )> (the "@" means
-"com, net, org") might return:
+"com, net, org, biz, us") might return:
 
-    { Domain  => [ qw(enom.com enom.net enom.org) ],
-      Command => "CHECK",
-      RRPCode => [ qw(211 211 211) ],
-      RRPText => [
-          "Domain not available",
-          "Domain not available",
-          "Domain not available" ] }
+    {
+        Domain  => [qw(enom.com enom.net enom.org)],
+        Command => "CHECK",
+        RRPCode => [qw(211 211 211)],
+        RRPText => [
+            "Domain not available",
+            "Domain not available",
+            "Domain not available"
+        ]
+    }
 
 You will need to read the API guide to check whether to expect responses
 in "RRPText" or "responses"; it's not exactly consistent.
