@@ -1,6 +1,6 @@
 package WWW::eNom::Role::Commands;
 
-use Any::Moose "Role";
+use Moo::Role;
 use strict;
 use warnings;
 use utf8;

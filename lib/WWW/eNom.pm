@@ -3,52 +3,61 @@ package WWW::eNom;
 use strict;
 use warnings;
 use utf8;
-use Any::Moose;
-use Any::Moose "::Util::TypeConstraints";
-use Carp;
-use Mozilla::PublicSuffix "public_suffix";
+use Moo;
+use Type::Utils qw(class_type subtype as where message);
+use Types::Standard qw(Bool Str);
+use Carp qw(croak);
+use Mozilla::PublicSuffix qw(public_suffix);
 use URI;
 
 # VERSION
 # ABSTRACT: Interact with eNom, Inc.'s reseller API
 
-with "WWW::eNom::Role::Commands";
+with 'WWW::eNom::Role::Commands';
 
 # Supported response types:
 my @response_types = qw(xml_simple xml html text);
-subtype "eNomResponseType"
-    => as "Str",
-    => where {
+
+my $URIObject = class_type({ class => 'URI' })->plus_coercions(
+    Str, sub { URI->new($_) }
+);
+
+my $eNomResponseType = subtype as Str,
+    where {
         my $type = $_;
-        { $type eq $_ and return 1 for @response_types; 0 } },
-    => message {
-         "response_type must be one of: " . join ", ", @response_types };
+        { $type eq $_ and return 1 for @response_types; 0 }
+    },
+    message {
+         'response_type must be one of: ' . join ', ', @response_types
+    }
+;
 
 has username => (
-    isa      => "Str",
-    is       => "ro",
+    isa      => Str,
+    is       => 'ro',
     required => 1
 );
 has password => (
-    isa      => "Str",
-    is       => "ro",
+    isa      => Str,
+    is       => 'ro',
     required => 1
 );
 has test => (
-    isa     => "Bool",
-    is      => "ro",
+    isa     => Bool,
+    is      => 'ro',
     default => 0
 );
 has response_type => (
-    isa     => "eNomResponseType",
-    is      => "ro",
-    default => "xml_simple"
+    isa     => $eNomResponseType,
+    is      => 'ro',
+    default => 'xml_simple'
 );
 has _uri => (
-    isa     => "URI",
-    is      => "ro",
+    isa     => $URIObject,
+    is      => 'ro',
+    coerce  => $URIObject->coercion,
     lazy    => 1,
-    default => \&_default__uri
+    default => \&_default__uri,
 );
 
 sub _make_query_string {
@@ -67,10 +76,11 @@ sub _make_query_string {
         # Finally, add in the neccesary API arguments:
         my ($sld) = $domain =~ /^(.+)\.$suffix$/x;
         $suffix = $subbed_tld if $subbed_tld;
-        @opts{qw(SLD TLD)} = ($sld, $suffix) }
+        @opts{qw(SLD TLD)} = ($sld, $suffix);
+    }
 
     my $response_type = $self->response_type;
-    $response_type = "xml" if $response_type eq "xml_simple";
+    $response_type = 'xml' if $response_type eq 'xml_simple';
     $uri->query_form(
         command      => $command,
         uid          => $self->username,
@@ -87,7 +97,5 @@ sub _default__uri {
     my $live = "http://reseller.enom.com/interface.asp";
     return URI->new( $self->test ? $test : $live );
 }
-
-__PACKAGE__->meta->make_immutable;
 
 1;
