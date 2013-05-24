@@ -33,6 +33,8 @@ of backward compatibility, the default is "xml_simple"; see below for an
 explanation of this response type. Use of any other valid option will lead to
 the return of string responses straight from the eNom API. These options are:
 
+=for Pod::Coverage username password response_type test
+
 =over
 
 =item * xml
@@ -114,6 +116,6 @@ Original version by Simon Cozens.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright © 2012 Richard Simões. This module is released under the terms of the
+Copyright © 2013 Richard Simões. This module is released under the terms of the
 B<MIT License> and may be modified and/or redistributed under the same or any
 compatible license.
