@@ -1,10 +1,13 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Updated command list to reflect eNom's latest version of its reseller API
+      version (7.8).
+    - Added new, yet-to-be-documented eNom API command (ryeddula).
+    - Replace Any::Moose dependency with Moo.
 
-v1.1.3    2013-05-16 10:38:19 CST6CDT
-    - Brought tests up to date to match latest eNom response (thanks to
-      drzigman).
+v1.1.3    2013-05-16 10:38:19 America/Chicago
+    - Brought tests up to date to match latest eNom response (drzigman).
 
 v1.1.2    2012-06-28 09:20:55 America/Chicago
     - Untabified all code.
