@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.2.1    2013-11-01 21:43:19 America/Chicago
     - Prevented Moo from falling back to Moose by replacing
       __PACKAGE__->meta->add_method with &Class::Method::Modifier::fresh.
 
