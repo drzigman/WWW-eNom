@@ -27,31 +27,32 @@ my $eNomResponseType = subtype as Str,
         my $type = $_;
         { $type eq $_ and return 1 for @response_types; 0 }
     },
-    message {
-         'response_type must be one of: ' . join ', ', @response_types
-    }
-;
+    message { 'response_type must be one of: ' . join ', ', @response_types };
 
 has username => (
     isa      => Str,
     is       => 'ro',
     required => 1
 );
+
 has password => (
     isa      => Str,
     is       => 'ro',
     required => 1
 );
+
 has test => (
     isa     => Bool,
     is      => 'ro',
     default => 0
 );
+
 has response_type => (
     isa     => $eNomResponseType,
     is      => 'ro',
     default => 'xml_simple'
 );
+
 has _uri => (
     isa     => $URIObject,
     is      => 'ro',
@@ -92,10 +93,10 @@ sub _make_query_string {
 }
 
 sub _default__uri {
-    my ($self) = @_;
-    my $test = "http://resellertest.enom.com/interface.asp";
-    my $live = "http://reseller.enom.com/interface.asp";
-    return URI->new( $self->test ? $test : $live );
+    my $self = shift;
+    my $subdomain = $self->test ? 'resellertest' : 'reseller';
+    return URI->new("http://$subdomain.enom.com/interface.asp");
 }
 
 1;
+
