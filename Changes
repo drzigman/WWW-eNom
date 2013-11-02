@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Prevented Moo from falling back to Moose by replacing
+      __PACKAGE__->meta->add_method with &Class::Method::Modifier::fresh.
 
 v1.2.0    2013-05-24 15:40:06 America/Chicago
     - Updated command list to reflect eNom's latest version of its reseller API

@@ -1,5 +1,5 @@
 severity = 3
 verbose  = 9
 theme    = core || moose
-exclude  = Subroutines::ProhibitUnusedPrivateSubroutines
+exclude  = Subroutines::ProhibitUnusedPrivateSubroutines RegularExpressions::RequireExtendedFormatting
 include  = Variables::ProhibitPackageVars
