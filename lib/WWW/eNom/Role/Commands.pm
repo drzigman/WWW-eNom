@@ -4,6 +4,8 @@ use Moo::Role;
 use strict;
 use warnings;
 use utf8;
+
+use Class::Method::Modifiers qw(fresh);
 use HTTP::Tiny;
 use XML::LibXML::Simple qw(XMLin);
 
@@ -109,28 +111,25 @@ my @commands = qw(
 
 my $ua = HTTP::Tiny->new;
 for my $command (@commands) {
-    __PACKAGE__->meta->add_method(
-        $command => sub {
-            my ($self, @opts) = @_;
-            my $uri = $self->_make_query_string($command, @opts);
-            my $response = $ua->get($uri)->{content};
-            my $response_type = $self->response_type;
-            if ( $response_type eq "xml_simple" ) {
-                $response = XMLin($response);
-                $response->{errors} &&= [ values %{ $response->{errors} } ];
-                $response->{responses} &&= $response->{responses}{response};
-                $response->{responses} = [ $response->{responses} ]
-                    if $response->{ResponseCount} == 1;
-                foreach my $key ( keys %{$response} ) {
-                    next unless $key =~ /(.*?)(\d+)$/x;
-                    $response->{$1} = undef
-                        if ref $response->{$key};
-                    $response->{$1}[ $2 - 1 ] = delete $response->{$key};
-                }
+    fresh $command => sub {
+        my ($self, @opts) = @_;
+        my $uri = $self->_make_query_string($command, @opts);
+        my $response = $ua->get($uri)->{content};
+        my $response_type = $self->response_type;
+        if ( $response_type eq "xml_simple" ) {
+            $response = XMLin($response);
+            $response->{errors} &&= [ values %{ $response->{errors} } ];
+            $response->{responses} &&= $response->{responses}{response};
+            $response->{responses} = [ $response->{responses} ]
+                if $response->{ResponseCount} == 1;
+            foreach my $key ( keys %{$response} ) {
+                next unless $key =~ /(.*?)(\d+)$/;
+                $response->{$1} = undef if ref $response->{$key};
+                $response->{$1}[ $2 - 1 ] = delete $response->{$key};
             }
-            return $response;
         }
-    );
+        return $response;
+    };
 }
 
 1;
