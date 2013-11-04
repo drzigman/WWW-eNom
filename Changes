@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Removed Moose as a testing prerequisite.
+    - Pruned down Type::Tiny-related prerequisites.
 
 v1.2.2    2013-11-04 13:53:29 America/Chicago
     - Promoted to full release.
