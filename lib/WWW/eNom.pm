@@ -3,7 +3,7 @@ package WWW::eNom;
 use strict;
 use warnings;
 use utf8;
-use Moo;
+use Moo 1.000007;
 use Type::Utils qw(class_type subtype as where message);
 use Types::Standard qw(Bool Str);
 use Carp qw(croak);

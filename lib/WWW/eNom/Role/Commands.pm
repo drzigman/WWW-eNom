@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Class::Method::Modifiers qw(fresh);
+use Class::Method::Modifiers 2.04 qw(fresh);
 use HTTP::Tiny;
 use XML::LibXML::Simple qw(XMLin);
 
