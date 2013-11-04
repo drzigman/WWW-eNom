@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.2.4    2013-11-04 16:16:02 America/Chicago
     - Required minumum version of Moo and Class::Method::Modifiers.
 
 v1.2.3    2013-11-04 14:08:28 America/Chicago
