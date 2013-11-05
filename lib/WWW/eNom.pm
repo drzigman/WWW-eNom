@@ -1,6 +1,5 @@
 package WWW::eNom;
 
-use v5.8.9;
 use strict;
 use warnings;
 use utf8;
