@@ -1,8 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
-    - Bumped minimum version to Moo to 1.001000.
-    - Fixed test failure occurringx when Moose isn't installed.
+    - Bumped minimum version of Moo to 1.001000.
+    - Fixed test failure from occurring when Moose isn't installed.
 
 v1.2.4    2013-11-04 16:16:02 America/Chicago
     - Required minumum version of Moo and Class::Method::Modifiers.
