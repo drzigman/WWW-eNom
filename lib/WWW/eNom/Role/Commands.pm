@@ -6,8 +6,8 @@ use warnings;
 use utf8;
 
 use Class::Method::Modifiers 2.04 qw(fresh);
-use HTTP::Tiny;
-use XML::LibXML::Simple qw(XMLin);
+use HTTP::Tiny 0.031;
+use XML::LibXML::Simple 0.91 qw(XMLin);
 
 # VERSION
 
