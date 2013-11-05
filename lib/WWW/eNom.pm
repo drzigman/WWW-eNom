@@ -81,8 +81,10 @@ sub _make_query_string {
         @opts{qw(SLD TLD)} = ($sld, $suffix);
     }
 
-    my $response_type = $self->response_type;
-    $response_type = 'xml' if $response_type eq 'xml_simple';
+    my $response_type = $self->response_type eq 'xml_simple'
+        ? 'xml'
+        : $self->response_type;
+
     $uri->query_form(
         command      => $command,
         uid          => $self->username,
@@ -90,6 +92,7 @@ sub _make_query_string {
         responseType => $response_type,
         %opts
     );
+
     return $uri;
 }
 
