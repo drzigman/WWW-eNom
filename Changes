@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Removed vstring usage that was breaking compatibility with Perl versions
+      prior to v5.9.
 
 v1.2.5    2013-11-05 12:00:58 America/Chicago
     - Bumped minimum version of Moo to 1.001000.
