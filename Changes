@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.2.6    2013-11-06 04:35:49 America/Chicago
     - Removed vstring usage that was breaking compatibility with Perl versions
       prior to v5.9.
 
