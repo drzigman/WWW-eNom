@@ -1,6 +1,7 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Updated tests and POD examples to reflect eNom's dropping of the .us TLD.
 
 v1.2.7    2013-11-07 01:45:37 America/Chicago
     - Removed version check against a dependency (Mozilla::PublicSuffix)
