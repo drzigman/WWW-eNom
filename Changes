@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.2.8    2013-11-13 23:05:14 America/Chicago
     - Updated tests and POD examples to reflect eNom's dropping of the .us TLD.
 
 v1.2.7    2013-11-07 01:45:37 America/Chicago
