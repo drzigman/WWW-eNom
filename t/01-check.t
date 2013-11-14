@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 
 use strict;
-use warnings FATAL => "all";
+use warnings FATAL => 'all';
 use Test::More tests => 3;
 use Test::Deep;
 use WWW::eNom;
@@ -9,11 +9,12 @@ use WWW::eNom;
 my $enom = WWW::eNom->new(
     username => "resellid",
     password => "resellpw",
-    test     => 1 );
+    test     => 1
+);
 my $response = $enom->Check( Domain => "enom.*1" );
 cmp_deeply(
     $response->{Domain},
-    [ qw(enom.com enom.net enom.org enom.info enom.biz enom.us) ],
+    [ qw(enom.com enom.net enom.org enom.info enom.biz) ],
     "Domain check returned sensible response." );
 $response = $enom->Check( DomainFFFFFF => "enom.*1" );
 is( $response->{ErrCount}, 1,
