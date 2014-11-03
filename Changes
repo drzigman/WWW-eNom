@@ -1,6 +1,9 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Updated integration test to have correct expectation of whois response.
+    - Updated command list to reflect eNom's latest version of its reseller API,
+      8.4 (thanks, ricecake).
 
 v1.2.8    2013-11-13 23:05:14 America/Chicago
     - Updated tests and POD examples to reflect eNom's dropping of the .us TLD.
