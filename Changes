@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.2.9    2014-11-03 17:29:39-06:00 America/Chicago
     - Updated integration test to have correct expectation of whois response.
     - Updated command list to reflect eNom's latest version of its reseller API,
       8.4 (thanks, ricecake).
