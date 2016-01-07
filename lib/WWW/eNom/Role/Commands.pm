@@ -93,7 +93,7 @@ fresh $_ => __PACKAGE__->_make_command_coderef($_)
     for @commands;
 
 sub _make_command_coderef {
-    my ($thing, $command) = @_;
+    my (undef, $command) = @_;
 
     return sub {
         my ($self, @opts) = @_;
