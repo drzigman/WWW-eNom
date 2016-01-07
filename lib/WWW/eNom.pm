@@ -108,4 +108,3 @@ sub _default__uri {
 }
 
 1;
-

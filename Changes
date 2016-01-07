@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Add better support for inheritance and general code reuse (RsrchBoy on
+      GitHub).
 
 v1.2.9    2014-11-03 17:29:39-06:00 America/Chicago
     - Updated integration test to have correct expectation of whois response.
