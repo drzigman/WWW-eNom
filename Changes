@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.3.0    2016-01-07 13:49:06-06:00 America/Chicago
     - Add better support for inheritance and general code reuse (RsrchBoy on
       GitHub).
 
