@@ -87,12 +87,18 @@ my @commands = qw(
     XXX_GetMemberId XXX_RemoveMemberId XXX_SetMemberId
 );
 
-my $ua = HTTP::Tiny->new;
-for my $command (@commands) {
-    fresh $command => sub {
+has _ua => (is => 'lazy', builder => sub { HTTP::Tiny->new });
+
+fresh $_ => __PACKAGE__->_make_command_coderef($_)
+    for @commands;
+
+sub _make_command_coderef {
+    my ($thing, $command) = @_;
+
+    return sub {
         my ($self, @opts) = @_;
         my $uri = $self->_make_query_string($command, @opts);
-        my $response = $ua->get($uri)->{content};
+        my $response = $self->_ua->get($uri)->{content};
         my $response_type = $self->response_type;
         if ( $response_type eq "xml_simple" ) {
             $response = XMLin($response);
