@@ -62,23 +62,28 @@ has _uri => (
     default => \&_default__uri,
 );
 
+sub _split_domain {
+    my ($self, $domain) = @_;
+
+    # Look for an eNom wildcard TLD:
+    my $wildcard_tld = qr{\.([*12@]+)$}x;
+    my ($subbed_tld) = $domain =~ $wildcard_tld
+        and $domain =~ s/$wildcard_tld/.com/x;
+    my $suffix = eval { public_suffix($domain) }
+        or croak "Domain name, $domain, does not look like a valid domain.";
+
+    # Finally, add in the neccesary API arguments:
+    my ($sld) = $domain =~ /^(.+)\.$suffix$/x;
+    $suffix = $subbed_tld if $subbed_tld;
+
+    return ($sld, $suffix);
+}
+
 sub _make_query_string {
     my ($self, $command, %opts) = @_;
     my $uri = $self->_uri;
     if ( $command ne "CertGetApproverEmail" && exists $opts{Domain} ) {
-        my $domain = delete $opts{Domain};
-        # Look for an eNom wildcard TLD:
-        my $wildcard_tld = qr{\.([*12@]+)$}x;
-        my ($subbed_tld) = $domain =~ $wildcard_tld
-            and $domain =~ s/$wildcard_tld/.com/x;
-        my $suffix = eval { public_suffix($domain) }
-            or croak "Domain name, $domain, does not look like a valid domain.";
-
-
-        # Finally, add in the neccesary API arguments:
-        my ($sld) = $domain =~ /^(.+)\.$suffix$/x;
-        $suffix = $subbed_tld if $subbed_tld;
-        @opts{qw(SLD TLD)} = ($sld, $suffix);
+        @opts{qw(SLD TLD)} = $self->_split_domain(delete $opts{Domain});
     }
 
     my $response_type = $self->response_type eq 'xml_simple'
