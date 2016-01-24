@@ -14,6 +14,6 @@ my $enom = WWW::eNom->new(
 my $response = $enom->CertGetApproverEmail( Domain => 'cpan.org' );
 is(
     $response->{CertGetApproverEMail}{Approver}[0]{ApproverEmail},
-    'admin@cpan.org',
+    'eashton@mac.com',
     'Found CPAN domain admin'
 );
