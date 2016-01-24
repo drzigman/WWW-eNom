@@ -1,6 +1,8 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+
+v1.3.1    2016-01-23 18:19:42-06:00 America/Chicago
     - Update whois email in test.
 
 v1.3.0    2016-01-07 13:49:06-06:00 America/Chicago
