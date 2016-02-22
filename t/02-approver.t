@@ -11,9 +11,12 @@ my $enom = WWW::eNom->new(
     test     => 1
 );
 
-my $response = $enom->CertGetApproverEmail( Domain => 'cpan.org' );
+my $response = $enom->CertGetApproverEmail(
+    CertID => 295,
+    Domain => 'www.resellerdocs.com'
+);
 is(
     $response->{CertGetApproverEMail}{Approver}[0]{ApproverEmail},
-    'eashton@mac.com',
-    'Found CPAN domain admin'
+    'pqqpyxkylv@whoisprivacyprotect.com',
+    'Found resellerdocs.com domain admin'
 );
