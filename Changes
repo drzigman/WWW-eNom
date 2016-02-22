@@ -1,6 +1,7 @@
 Revision history for WWW-eNom
 
 {{$NEXT}}
+    - Update test to reflect current state of eNom API.
 
 v1.3.1    2016-01-23 18:19:42-06:00 America/Chicago
     - Update whois email in test.
