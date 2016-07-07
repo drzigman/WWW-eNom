@@ -1,6 +1,10 @@
 Revision history for WWW-eNom
 
-{{$NEXT}}
+v1.4.0    2016-07-07
+    - Trial Release
+    - Robert Stone (drzigman) new maintainer
+    - Refactored to use Moose over Moo in preperation for major refactor,
+      expansion, and creation of 2.X.X series.
 
 v1.3.3    2016-03-28 12:56:14-05:00 America/Chicago
     - Removed test of unavailable API call
