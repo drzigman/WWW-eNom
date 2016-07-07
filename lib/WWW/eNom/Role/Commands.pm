@@ -1,28 +1,29 @@
 package WWW::eNom::Role::Commands;
 
-use Moo::Role;
 use strict;
 use warnings;
 use utf8;
 
-use Class::Method::Modifiers 2.04 qw(fresh);
-use HTTP::Tiny 0.031;
-use XML::LibXML::Simple 0.91 qw(XMLin);
+use Moose::Role;
+use MooseX::Params::Validate;
+
+use WWW::eNom::Types qw( HTTPTiny Str Strs );
+
+use HTTP::Tiny;
+use XML::LibXML::Simple qw( XMLin );
+use Mozilla::PublicSuffix qw( public_suffix );
+
+use Try::Tiny;
+use Carp;
+
+requires 'username', 'password', '_uri', 'response_type';
 
 # VERSION
+# ABSTRACT: Raw eNom API Commands
 
-requires "_make_query_string";
-
-=begin Pod::Coverage
-
- \w+
-
-=end Pod::Coverage
-
-=cut
-
+use Readonly;
 # Create methods to support eNom API version 7.8:
-my @commands = qw(
+Readonly my $COMMANDS => [qw(
     AddBulkDomains AddContact AddDomainFolder AddDomainHeader AddHostHeader
     AddToCart AdvancedDomainSearch AM_AutoRenew AM_Configure AM_GetAccountDetail
     AM_GetAccounts AssignToDomainFolder AuthorizeTLD CalculateAllHostPackagePricing
@@ -85,35 +86,120 @@ my @commands = qw(
     WebHostGetResellerPackages WebHostGetStats WebHostHelpInfo WebHostSetCustomPackage WebHostSetOverageOptions
     WebHostUpdatePassword WebHostUpdatePOPPassword WSC_GetAccountInfo WSC_GetAllPackages WSC_GetPricing WSC_Update_Ops
     XXX_GetMemberId XXX_RemoveMemberId XXX_SetMemberId
+)];
+
+has _api_commands => (
+    is       => 'ro',
+    isa      => Strs,
+    default  => sub { $COMMANDS },
+    init_arg => undef,
 );
 
-has _ua => (is => 'lazy', builder => sub { HTTP::Tiny->new });
+has _ua => (
+    is      => 'ro',
+    isa     => HTTPTiny,
+    lazy    => 1,
+    default => sub { HTTP::Tiny->new },
+);
 
-fresh $_ => __PACKAGE__->_make_command_coderef($_)
-    for @commands;
+sub BUILD {
+    my $self = shift;
 
-sub _make_command_coderef {
-    my (undef, $command) = @_;
+    $self->install_methods();
 
-    return sub {
-        my ($self, @opts) = @_;
-        my $uri = $self->_make_query_string($command, @opts);
-        my $response = $self->_ua->get($uri)->{content};
-        my $response_type = $self->response_type;
-        if ( $response_type eq "xml_simple" ) {
-            $response = XMLin($response);
-            $response->{errors} &&= [ values %{ $response->{errors} } ];
-            $response->{responses} &&= $response->{responses}{response};
-            $response->{responses} = [ $response->{responses} ]
-                if $response->{ResponseCount} == 1;
-            foreach my $key ( keys %{$response} ) {
-                next unless $key =~ /(.*?)(\d+)$/;
-                $response->{$1} = undef if ref $response->{$key};
-                $response->{$1}[ $2 - 1 ] = delete $response->{$key};
+    return;
+}
+
+sub install_methods {
+    my $self = shift;
+
+    for my $command (@{ $self->_api_commands }) {
+        $self->meta->add_method(
+            $command => sub {
+                my ($self, @opts) = @_;
+
+                my $uri      = $self->_make_query_string( $command, @opts );
+                my $response = $self->_ua->get( $uri )->{content};
+
+                if ( $self->response_type eq "xml_simple" ) {
+                    $response = $self->_serialize_xml_simple_response( $response );
+                }
+
+                return $response;
             }
+        );
+    };
+
+    return;
+}
+
+sub _make_query_string {
+    my ($self, $command, %opts) = @_;
+
+    my $uri = $self->_uri;
+    if ( $command ne "CertGetApproverEmail" && exists $opts{Domain} ) {
+        @opts{qw(SLD TLD)} = $self->_split_domain(delete $opts{Domain});
+    }
+
+    my $response_type = $self->response_type eq 'xml_simple' ? 'xml' : $self->response_type;
+
+    $uri->query_form(
+        command      => $command,
+        uid          => $self->username,
+        pw           => $self->password,
+        responseType => $response_type,
+        %opts
+    );
+
+    return $uri;
+}
+
+sub _split_domain {
+    my $self = shift;
+    my ( $domain ) = pos_validated_list( \@_, { isa => Str } );
+
+    return try {
+        # Look for an eNom wildcard TLD:
+        if( $domain =~ qr|(.+)\.([*12@]+)$|x ) {
+            return ( $1, $2 );
         }
-        return $response;
+
+        my $suffix = public_suffix($domain);
+        if( !$suffix ) {
+            croak 'Unable to find a suffix from the domain';
+        }
+
+        # Finally, add in the neccesary API arguments:
+        my ( $sld ) = $domain =~ /^(.+)\.$suffix$/x;
+
+        return ($sld, $suffix);
+    }
+    catch {
+        croak "Domain name, $domain, does not look like a valid domain.";
     };
 }
 
+sub _serialize_xml_simple_response {
+    my $self = shift;
+    my ( $response ) = pos_validated_list( \@_, { isa => Str } );
+
+    $response = XMLin($response);
+
+    $response->{errors}    &&= [ values %{ $response->{errors} } ];
+    $response->{responses} &&= $response->{responses}{response};
+    $response->{responses} =   [ $response->{responses} ]
+        if $response->{ResponseCount} == 1;
+
+    foreach my $key ( keys %{$response} ) {
+        next unless $key =~ /(.*?)(\d+)$/;
+
+        $response->{$1} = undef if ref $response->{$key};
+        $response->{$1}[ $2 - 1 ] = delete $response->{$key};
+    }
+
+    return $response;
+}
+
 1;
+
+__END__
