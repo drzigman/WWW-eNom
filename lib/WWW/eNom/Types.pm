@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Data::Validate::Domain qw( is_domain );
+use Data::Validate::Email qw( is_email );
 use URI;
 
 # VERSION
@@ -17,13 +18,20 @@ use MooseX::Types -declare => [qw(
     Str
     Strs
 
+    ContactType
     DomainName
+    DomainNames
+    EmailAddress
     HTTPTiny
+    NumberPhone
     ResponseType
     URI
 
+    Contact
     DomainAvailability
     DomainAvailabilities
+    DomainRegistration
+    PhoneNumber
 )];
 
 use MooseX::Types::Moose
@@ -40,9 +48,16 @@ subtype Int,      as MooseInt;
 subtype Str,      as MooseStr;
 subtype Strs,     as ArrayRef[Str];
 
+enum ContactType, [qw( Registrant Tech Admin AuxBilling )];
+
 subtype DomainName, as Str,
     where { is_domain( $_ ) },
     message { "$_ is not a valid domain" };
+subtype DomainNames, as ArrayRef[DomainName];
+
+subtype EmailAddress, as Str,
+    where { is_email( $_ ) },
+    message { "$_ is not a valid email address" };
 
 my @response_types = qw( xml xml_simple html text );
 subtype ResponseType, as Str,
@@ -52,12 +67,20 @@ subtype ResponseType, as Str,
     },
     message { 'response_type must be one of: ' . join ', ', @response_types };
 
-class_type HTTPTiny, { class => 'HTTP::Tiny' };
-class_type URI, { class => 'URI' };
+class_type HTTPTiny,    { class => 'HTTP::Tiny' };
+class_type NumberPhone, { class => 'Number::Phone' };
+class_type URI,         { class => 'URI' };
 coerce URI, from Str, via { URI->new( $_ ) };
 
+class_type Contact,            { class => 'WWW::eNom::Contact' };
 class_type DomainAvailability, { class => 'WWW::eNom::DomainAvailability' };
 subtype DomainAvailabilities, as ArrayRef[DomainAvailability];
+class_type DomainRegistration, { class => 'WWW::eNom::DomainRequest::Registration' };
+class_type PhoneNumber,        { class => 'WWW::eNom::PhoneNumber' };
+coerce PhoneNumber, from Str,
+    via { WWW::eNom::PhoneNumber->new( $_ ) };
+coerce PhoneNumber, from NumberPhone,
+    via { WWW::eNom::PhoneNumber->new( $_->format ) };
 
 1;
 

@@ -123,6 +123,9 @@ sub install_methods {
                 my $uri      = $self->_make_query_string( $command, \%args );
                 my $response = $self->_ua->get( $uri )->{content};
 
+#                print STDERR "URI: $uri\n";
+#                print STDERR "Response: $response\n";
+
                 if ( $self->response_type eq "xml_simple" ) {
                     $response = $self->_serialize_xml_simple_response( $response );
                 }

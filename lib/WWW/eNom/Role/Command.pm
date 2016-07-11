@@ -14,7 +14,8 @@ use Carp;
 
 requires 'response_type';
 with 'WWW::eNom::Role::Command::Raw',
-     'WWW::eNom::Role::Command::Domain::Availability';
+     'WWW::eNom::Role::Command::Domain::Availability',
+     'WWW::eNom::Role::Command::Domain::Registration';
 
 # VERSION
 # ABSTRACT: Submission of eNom Commands
@@ -92,6 +93,8 @@ WWW::eNom::Role::Command - Basic Logic for Submission of Requests to eNom
 =item L<WWW::eNom::Role::Command::Raw>
 
 =item L<WWW::eNom::Role::Command::Domain::Availability>
+
+=item L<WWW::eNom::Role::Command::Domain::Registration>
 
 =back
 
