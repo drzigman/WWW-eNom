@@ -16,6 +16,8 @@ subtest "$ROLE is a well formed role" => sub {
     requires_method_ok( $ROLE, 'response_type' );
 
     does_ok( $ROLE, 'WWW::eNom::Role::Command::Raw' );
+    does_ok( $ROLE, 'WWW::eNom::Role::Command::Contact' );
+    does_ok( $ROLE, 'WWW::eNom::Role::Command::Domain' );
     does_ok( $ROLE, 'WWW::eNom::Role::Command::Domain::Availability' );
     does_ok( $ROLE, 'WWW::eNom::Role::Command::Domain::Registration' );
 };

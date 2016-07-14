@@ -33,9 +33,26 @@ subtest 'Register Available Domain - No Privacy, Locking, Auto Renew, or Queueab
         });
     } 'Lives through creating request object';
 
+    my $domain;
     lives_ok {
-        $eNom->register_domain( request => $request );
+        $domain = $eNom->register_domain( request => $request );
     } 'Lives through registering domain';
+
+    if( isa_ok( $domain, 'WWW::eNom::Domain' ) ) {
+        like( $domain->id, qr/^\d+$/, 'id looks numeric' );
+        cmp_ok( $domain->name, 'eq', $request->name, 'Correct name' );
+        cmp_ok( $domain->status, 'eq', 'Registered', 'Correct status' );
+        cmp_ok( $domain->verification_status, 'eq', 'Pending Suspension', 'Correct verification_status' );
+        cmp_ok( $domain->is_auto_renew, '==', 0, 'Correct is_auto_renew' );
+        cmp_ok( $domain->is_locked, '==', 0, 'Correct is_locked' );
+        cmp_ok( $domain->is_private, '==', 0, 'Correct is_private' );
+        cmp_ok( $domain->expiration_date->ymd, 'eq', DateTime->now->add( years => 1 )->ymd, 'Correct expiration_date' );
+        is_deeply( $request->ns, $domain->ns, 'Correct nameservers' );
+
+        for my $contact_type (qw( registrant_contact admin_contact technical_contact billing_contact )) {
+            is_deeply( $domain->$contact_type, $request->$contact_type, "Correct $contact_type" );
+        }
+    }
 };
 
 #subtest 'Register Available Domain - With Privacy'

@@ -8,9 +8,13 @@ use MooseX::StrictConstructor;
 use MooseX::Params::Validate;
 use namespace::autoclean;
 
-use WWW::eNom::Types qw( ContactType EmailAddress PhoneNumber Str );
+use WWW::eNom::Types qw( ContactType EmailAddress HashRef PhoneNumber Str );
 
 use WWW::eNom::PhoneNumber;
+
+use Data::Util qw( is_string );
+use Try::Tiny;
+use Carp;
 
 # VERSION
 # ABSTRACT: eNom Contact
@@ -141,18 +145,33 @@ sub construct_creation_request {
         }
     }
 
-    use Data::Dumper;
-    print STDERR Dumper( $creation_request );
-
     return $creation_request;
 }
 
 sub construct_from_response {
-    my $self = shift;
+    my $self         = shift;
+    my ( $response ) = pos_validated_list( \@_, { isa => HashRef } );
 
-    ...;
-
-    return;
+    return try {
+        return $self->new({
+            first_name        => $response->{'FirstName'},
+            last_name         => $response->{'LastName'},
+            is_string( $response->{'OrganizationName'} ) ? ( organization_name => $response->{'OrganizationName'} ) : ( ),
+            is_string( $response->{'JobTitle'}         ) ? ( job_title         => $response->{'JobTitle'}         ) : ( ),
+            address1          => $response->{'Address1'},
+            is_string( $response->{'Address2'}         ) ? ( address2          => $response->{'Address2'}         ) : ( ),
+            city              => $response->{'City'},
+            is_string( $response->{'StateProvince'}    ) ? ( state             => $response->{'StateProvince'}    ) : ( ),
+            country           => $response->{'Country'},
+            zipcode           => $response->{'PostalCode'},
+            email             => $response->{'EmailAddress'},
+            phone_number      => $response->{'Phone'},
+            is_string( $response->{'Fax'}             ) ? ( fax_number        => $response->{'Fax'}              ) : ( ),
+        });
+    }
+    catch {
+        croak "Error constructing contact from response: $_";
+    };
 }
 
 __PACKAGE__->meta->make_immutable;

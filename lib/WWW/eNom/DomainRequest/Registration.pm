@@ -106,7 +106,7 @@ sub construct_request {
         TLD => $self->tld,
         !$self->has_ns
             ? ( UseDNS => 'default' )
-            : ( map { 'NS' . $_ => $self->ns->[ $_ ] } 0 .. scalar (@{ $self->ns }) ),
+            : ( map { 'NS' . ( $_ + 1 ) => $self->ns->[ $_ ] } 0 .. ( scalar (@{ $self->ns }) - 1) ),
         IgnoreNSFail    => ( $self->is_ns_fail_fatal ? 'No' : 'Yes' ),
         UnLockRegistrar => ( $self->is_locked        ? 0    : 1     ),
         RenewName       => ( $self->is_auto_renew    ? 1    : 0     ),

@@ -29,16 +29,13 @@ sub register_domain {
         params => $args{request}->construct_request(),
     });
 
-    use Data::Dumper;
-    print STDERR "Register Domain Response: " . Dumper( $response ) . "\n";
-
     if( $args{request}->is_private ) {
         # Set up Privacy
         ...;
     }
 
     # Retrieve the Domain Back out and return a WWW::eNom::Domain
-    ...;
+    return $self->get_domain_by_name( $args{request}->name );
 }
 
 1;

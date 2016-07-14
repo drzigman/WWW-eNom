@@ -15,10 +15,12 @@ use MooseX::Types -declare => [qw(
     Bool
     HashRef
     Int
+    PositiveInt
     Str
     Strs
 
     ContactType
+    DateTime
     DomainName
     DomainNames
     EmailAddress
@@ -59,6 +61,10 @@ subtype EmailAddress, as Str,
     where { is_email( $_ ) },
     message { "$_ is not a valid email address" };
 
+subtype PositiveInt, as Int,
+    where { $_ > 0 },
+    message { "$_ is not a positive integer" };
+
 my @response_types = qw( xml xml_simple html text );
 subtype ResponseType, as Str,
     where {
@@ -67,6 +73,7 @@ subtype ResponseType, as Str,
     },
     message { 'response_type must be one of: ' . join ', ', @response_types };
 
+class_type DateTime,    { class => 'DateTime' };
 class_type HTTPTiny,    { class => 'HTTP::Tiny' };
 class_type NumberPhone, { class => 'Number::Phone' };
 class_type URI,         { class => 'URI' };
