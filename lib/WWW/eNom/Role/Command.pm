@@ -17,7 +17,8 @@ with 'WWW::eNom::Role::Command::Raw',
      'WWW::eNom::Role::Command::Contact',
      'WWW::eNom::Role::Command::Domain',
      'WWW::eNom::Role::Command::Domain::Availability',
-     'WWW::eNom::Role::Command::Domain::Registration';
+     'WWW::eNom::Role::Command::Domain::Registration',
+     'WWW::eNom::Role::Command::Service';
 
 # VERSION
 # ABSTRACT: Submission of eNom Commands

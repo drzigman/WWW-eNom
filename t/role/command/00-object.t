@@ -20,6 +20,7 @@ subtest "$ROLE is a well formed role" => sub {
     does_ok( $ROLE, 'WWW::eNom::Role::Command::Domain' );
     does_ok( $ROLE, 'WWW::eNom::Role::Command::Domain::Availability' );
     does_ok( $ROLE, 'WWW::eNom::Role::Command::Domain::Registration' );
+    does_ok( $ROLE, 'WWW::eNom::Role::Command::Service' );
 };
 
 subtest "$ROLE has the correct methods" => sub {

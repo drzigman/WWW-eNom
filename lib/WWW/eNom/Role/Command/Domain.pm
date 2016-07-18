@@ -188,6 +188,40 @@ sub get_domain_created_date_by_name {
 
 }
 
+=cut
+# This will get uncommented when we actually implement this method
+sub enable_domain_privacy_for_domain_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return try {
+        my $response = $self->submit({
+            method => 'EnableServices',
+            params => {
+                Domain  => $domain_name,
+                Service => 'WPPS',
+            }
+        });
+
+        use Data::Dumper;
+        print STDERR Dumper( $response ) . "\n";
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            croak 'Unknown error';
+        }
+
+        return $self->get_domain_by_name( $domain_name );
+    }
+    catch {
+        croak $_;
+    };
+}
+=cut
+
 1;
 
 __END__
