@@ -34,8 +34,21 @@ sub register_domain {
         ...;
     }
 
-    # Retrieve the Domain Back out and return a WWW::eNom::Domain
-    return $self->get_domain_by_name( $args{request}->name );
+    # Because there can be some lag between domain creation and being able to
+    # fetch the data from eNom, give it a few tries before calling it a failure
+    for ( my $attempt_number = 1; $attempt_number <= 3; $attempt_number++ ) {
+        my $domain;
+        try {
+            $domain = $self->get_domain_by_name( $args{request}->name )
+        }
+        catch {
+            sleep $attempt_number;
+        };
+
+        $domain and return $domain;
+    }
+
+    croak 'Domain registered but unable to retrieve it';
 }
 
 1;

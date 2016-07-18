@@ -100,6 +100,9 @@ subtest 'Get Contacts For Domain Missing Contact' => sub {
         });
     } 'Lives through domain registration';
 
+    note('Sleeping to allow eNom time to create the account');
+    sleep 5;
+
     my $retrieved_contacts;
     lives_ok {
         $retrieved_contacts = $api->get_contacts_by_domain_name( $domain_request->name );

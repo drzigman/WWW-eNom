@@ -64,14 +64,11 @@ has 'is_private' => (
     required => 1,
 );
 
-=cut
-# ???
 has 'created_date' => (
     is       => 'ro',
     isa      => DateTime,
     required => 1,
 );
-=cut
 
 # Expiration
 has 'expiration_date' => (
@@ -122,6 +119,7 @@ sub construct_from_response {
         is_locked     => { isa => Bool },
         name_servers  => { isa => DomainNames },
         contacts      => { isa => HashRef },
+        created_date  => { isa => DateTime },
     );
 
     return try {
@@ -133,7 +131,7 @@ sub construct_from_response {
             is_auto_renew       => $args{is_auto_renew},
             is_locked           => $args{is_locked},
             is_private          => ( $args{domain_info}{services}{entry}{wpps}{service}{content} == 1120 ),
-#            created_date => ...,
+            created_date        => $args{created_date},
             expiration_date     => DateTime::Format::DateParse->parse_datetime( $args{domain_info}{status}{expiration} ),
             ns                  => $args{name_servers},
             registrant_contact  => $args{contacts}{registrant_contact},

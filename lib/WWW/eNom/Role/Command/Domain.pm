@@ -10,6 +10,7 @@ use WWW::eNom::Types qw( DomainName );
 
 use WWW::eNom::Domain;
 
+use DateTime::Format::DateParse;
 use Mozilla::PublicSuffix qw( public_suffix );
 use Try::Tiny;
 use Carp;
@@ -31,6 +32,14 @@ sub get_domain_by_name {
             }
         });
 
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            croak 'Unknown error';
+        }
+
         if( !exists $response->{GetDomainInfo} ) {
             croak 'Response did not contain domain info';
         }
@@ -41,6 +50,7 @@ sub get_domain_by_name {
             is_locked     => $self->get_is_domain_locked_by_name( $domain_name ),
             name_servers  => $self->get_domain_name_servers_by_name( $domain_name ),
             contacts      => $self->get_contacts_by_domain_name( $domain_name ),
+            created_date  => $self->get_domain_created_date_by_name( $domain_name ),
         );
     }
     catch {
@@ -139,6 +149,38 @@ sub get_is_domain_auto_renew_by_name {
         }
 
         return !!$response->{'auto-renew'};
+    }
+    catch {
+        croak $_;
+    };
+}
+
+sub get_domain_created_date_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return try {
+        my $response = $self->submit({
+            method => 'GetWhoisContact',
+            params => {
+                Domain => $domain_name,
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'No results found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            croak 'Unknown error';
+        }
+
+        if( !exists $response->{GetWhoisContacts}{'rrp-info'}{'created-date'} ) {
+            croak 'Response did not contain creation data';
+        }
+
+        return DateTime::Format::DateParse->parse_datetime( $response->{GetWhoisContacts}{'rrp-info'}{'created-date'}, 'UTC' );
+
     }
     catch {
         croak $_;

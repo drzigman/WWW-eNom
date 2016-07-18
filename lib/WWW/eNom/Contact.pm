@@ -119,6 +119,16 @@ has 'fax_number' => (
     coerce    => 1,
 );
 
+sub BUILD {
+    my $self = shift;
+
+    if( $self->has_organization_name ) {
+        if( !$self->has_job_title || !$self->has_fax_number ) {
+            croak 'Contacts with an organization_name require a job_title and fax_number';
+        }
+    }
+}
+
 sub construct_creation_request {
     my $self = shift;
     my ( $contact_type ) = pos_validated_list( \@_, { isa => ContactType, optional => 1 } );

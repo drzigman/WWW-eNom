@@ -22,6 +22,7 @@ subtest "$ROLE has the correct methods" => sub {
     has_method_ok( $ROLE, 'get_is_domain_locked_by_name' );
     has_method_ok( $ROLE, 'get_domain_name_servers_by_name' );
     has_method_ok( $ROLE, 'get_is_domain_auto_renew_by_name' );
+    has_method_ok( $ROLE, 'get_domain_created_date_by_name' );
 };
 
 done_testing;

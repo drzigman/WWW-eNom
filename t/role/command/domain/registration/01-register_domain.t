@@ -46,7 +46,9 @@ subtest 'Register Available Domain - No Privacy, Locking, Auto Renew, or Queueab
         cmp_ok( $domain->is_auto_renew, '==', 0, 'Correct is_auto_renew' );
         cmp_ok( $domain->is_locked, '==', 0, 'Correct is_locked' );
         cmp_ok( $domain->is_private, '==', 0, 'Correct is_private' );
-        cmp_ok( $domain->expiration_date->ymd, 'eq', DateTime->now->add( years => 1 )->ymd, 'Correct expiration_date' );
+        cmp_ok( $domain->created_date->ymd, 'eq', DateTime->now( time_zone => 'UTC' )->ymd, 'Correct created_date' );
+        cmp_ok( $domain->expiration_date->ymd, 'eq', DateTime->now( time_zone => 'UTC' )->add( years => 1 )->ymd,
+            'Correct expiration_date' );
         is_deeply( $request->ns, $domain->ns, 'Correct nameservers' );
 
         for my $contact_type (qw( registrant_contact admin_contact technical_contact billing_contact )) {
