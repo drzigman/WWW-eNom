@@ -348,7 +348,7 @@ AuxBilling is what eNom calls the "Billing" contact for WHOIS data since the Bil
 
 =head2 construct_from_response
 
-    my $response = $self->submit({
+    my $response = $api->submit({
         method => 'GetContacts',
         params => {
             Domain => $domain_name
