@@ -17,6 +17,9 @@ use DateTime::Format::DateParse;
 use Try::Tiny;
 use Carp;
 
+# VERSION
+# ABSTRACT: Representation of Registered eNom Domain
+
 # DomainNameID
 has 'id' => (
     is       => 'ro',

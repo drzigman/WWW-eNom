@@ -52,8 +52,6 @@ sub purchase_domain_privacy_for_domain {
     }
     catch {
         croak $_;
-
-        undef;
     };
 }
 

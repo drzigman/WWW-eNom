@@ -17,23 +17,20 @@ use Try::Tiny;
 use Carp;
 
 # VERSION
-# ABSTRACT: eNom Contact
+# ABSTRACT: Representation of eNom Contact
 
-# FirstName
 has 'first_name' => (
     is       => 'rw',
     isa      => Str,
     required => 1,
 );
 
-# LastName
 has 'last_name' => (
     is       => 'rw',
     isa      => Str,
     required => 1,
 );
 
-# OrganizationName
 has 'organization_name' => (
     is        => 'rw',
     isa       => Str,
@@ -41,8 +38,6 @@ has 'organization_name' => (
     clearer   => 'clear_organization_name',
 );
 
-# JobTitle
-# Required if organization_name is specified 
 has 'job_title' => (
     is        => 'rw',
     isa       => Str,
@@ -50,14 +45,12 @@ has 'job_title' => (
     clearer   => 'clear_job_title',
 );
 
-# Address1
 has 'address1' => (
     is       => 'rw',
     isa      => Str,
     required => 1,
 );
 
-# Address2
 has 'address2' => (
     is        => 'rw',
     isa       => Str,
@@ -65,14 +58,12 @@ has 'address2' => (
     clearer   => 'clear_address2',
 );
 
-# City
 has 'city' => (
     is       => 'rw',
     isa      => Str,
     required => 1,
 );
 
-# StateProvince
 has 'state' => (
     is        => 'rw',
     isa       => Str,
@@ -80,28 +71,24 @@ has 'state' => (
     clearer   => 'clear_state',
 );
 
-# Country
 has 'country' => (
     is       => 'rw',
     isa      => Str,
     required => 1,
 );
 
-# PostalCode
 has 'zipcode' => (
     is       => 'rw',
     isa      => Str,
     required => 1,
 );
 
-# EmailAddress
 has 'email' => (
     is       => 'rw',
     isa      => EmailAddress,
     required => 1,
 );
 
-# Phone
 has 'phone_number' => (
     is       => 'rw',
     isa      => PhoneNumber,
@@ -109,8 +96,6 @@ has 'phone_number' => (
     coerce   => 1,
 );
 
-# Fax
-# Required if OrganizationName is specified
 has 'fax_number' => (
     is        => 'rw',
     isa       => PhoneNumber,
@@ -188,3 +173,182 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+WWW::eNom::Contact - Representation of eNom Contact
+
+=head1 SYNOPSIS
+
+    my $api     = WWW::eNom->new( ... );
+    my $contact = WWW::eNom::Contact->new( ... );
+
+    # Contact Creation
+    my $registrant_contact_creation_payload = $contact->construct_creation_request('Registrant');
+    my $admin_contact_creation_payload      = $contact->construct_creation_request('Admin');
+    my $technical_contact_creation_payload  = $contact->construct_creation_request('Tech');
+    my $billing_contact_creation_payload    = $contact->construct_creation_request('AuxBilling');
+
+    my $response = $api->submit({
+        method => 'Purchase',
+        params => {
+            ...,
+            %{ $registrant_contact_creation_payload },
+            %{ $admin_contact_creation_payload },
+            %{ $technical_contact_creation_payload },
+            %{ $billing_contact_creation_payload },
+        }
+    });
+
+    # Contact Retrieval
+    my $response = $self->submit({
+        method => 'GetContacts',
+        params => {
+            Domain => $domain_name
+        }
+    });
+
+    my $contacts;
+    for my $contact_type (qw( Registrant Admin Tech AuxBilling )) {
+        my $raw_contact_response = $response->{GetContacts}{$contact_type};
+
+        my $common_contact_response;
+        for my $field ( keys %{ $raw_contact_response } ) {
+            if( $field !~ m/$contact_type/ ) {
+                next;
+            }
+
+            $common_contact_response->{ substr( $field, length( $contact_type ) ) } =
+                $raw_contact_response->{ $field } // { };
+        }
+
+        $contacts->{ $contact_type } = WWW::eNom::Contact->construct_from_response( $common_contact_response );
+    }
+
+
+=head1 DESCRIPTION
+
+Representation of an L<eNom|http://www.enom.com> Contact.
+
+=head1 ATTRIBUTES
+
+=head2 B<first_name>
+
+=head2 B<last_name>
+
+=head2 organization_name
+
+Predicate of has_organization_name and clearer of clear_organization_name.
+
+B<NOTE> If the organization_name is specified then the previously optional L<job_title|WWW::eNom::Contact/job_title> and L<fax_number|WWW::eNom::Contact/fax_number> attributes become B<required>.
+
+=head2 job_title
+
+Predicate of has_job_title and clearer of clear_job_title.
+
+B<NOTE> this field is B<required> if an L<organization_name|WWW::eNom::Contact/organization_name> was provided.
+
+=head2 B<address1>
+
+=head2 address2
+
+Predicate of has_address2 and clearer of clear_address2
+
+=head2 B<city>
+
+=head2 state
+
+Required for Contacts with a US Address, the full name of the state so Texas rather than TX should be used.
+
+Predicate of has_state and clearer of clear_state.
+
+=head2 B<country>
+
+The L<ISO-3166-1 alpha-2 (two character country code)|https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2> is preferred.  You can use a full country name, just keep in mind your response from eNom will be the country code.
+
+=head2 B<zipcode>
+
+=head2 B<email>
+
+=head2 B<phone_number>
+
+An instance of L<WWW::eNom:PhoneNumber>, but this will coerce from a L<Number::Phone> object or a string based representation of the phone number.  This will also stringify to a human readable phone number.
+
+=head2 fax_number
+
+An instance of L<WWW::eNom:PhoneNumber>, but this will coerce from a L<Number::Phone> object or a string based representation of the phone number.  This will also stringify to a human readable phone number.
+
+Predicate of has_fax_number and clearer of clear_fax_number.
+
+B<NOTE> this field is B<required> if an L<organization_name|WWW::eNom::Contact/organization_name> was provided.
+
+=head1 METHODS
+
+=head2 construct_creation_request
+
+    my $api     = WWW::eNom->new( ... );
+    my $contact = WWW::eNom::Contact->new( ... );
+
+    my $registrant_contact_creation_payload = $contact->construct_creation_request('Registrant');
+    my $admin_contact_creation_payload      = $contact->construct_creation_request('Admin');
+    my $technical_contact_creation_payload  = $contact->construct_creation_request('Tech');
+    my $billing_contact_creation_payload    = $contact->construct_creation_request('AuxBilling');
+
+    my $response = $api->submit({
+        method => 'Purchase',
+        params => {
+            ...,
+            %{ $registrant_contact_creation_payload },
+            %{ $admin_contact_creation_payload },
+            %{ $technical_contact_creation_payload },
+            %{ $billing_contact_creation_payload },
+        }
+    });
+
+Converts $self into a HashRef suitable for creation of a contact with L<eNom|https://www.enom.com>.  Accepts a string that must be one of the following:
+
+=over 4
+
+=item Registrant
+
+=item Admin
+
+=item Tech
+
+=item AuxBilling
+
+AuxBilling is what eNom calls the "Billing" contact for WHOIS data since the Billing contact is actually the reseller.
+
+=back
+
+=head2 construct_from_response
+
+    my $response = $self->submit({
+        method => 'GetContacts',
+        params => {
+            Domain => $domain_name
+        }
+    });
+
+    my $contacts;
+    for my $contact_type (qw( Registrant Admin Tech AuxBilling )) {
+        my $raw_contact_response = $response->{GetContacts}{$contact_type};
+
+        my $common_contact_response;
+        for my $field ( keys %{ $raw_contact_response } ) {
+            if( $field !~ m/$contact_type/ ) {
+                next;
+            }
+
+            $common_contact_response->{ substr( $field, length( $contact_type ) ) } =
+                $raw_contact_response->{ $field } // { };
+        }
+
+        $contacts->{ $contact_type } = WWW::eNom::Contact->construct_from_response( $common_contact_response );
+    }
+
+Getting a contact from a response is a bit more involved then other data marshallers.  This is because the fields are all prefixed with the contact type.  Rather than having just FirstName the response will contain a field like TechFirstName.  This must be processed off before feeding in the HashRef of the response into the construct_from_response method.  Returned is an instance of self.
+
+=cut

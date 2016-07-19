@@ -12,6 +12,9 @@ use Mozilla::PublicSuffix;
 
 requires 'name';
 
+# VERSION
+# ABSTRACT: Parse a domain into sld and public_suffix/tld
+
 has 'sld' => (
     is       => 'ro',
     isa      => Str,

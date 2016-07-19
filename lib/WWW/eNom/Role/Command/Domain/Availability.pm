@@ -227,7 +227,7 @@ B<NOTE> There is a hard limit of 30 "checks" for a given combination of SLDs and
     }
 
 Abstraction of the L<NameSpinner|http://www.enom.com/APICommandCatalog/API%20topics/api_NameSpinner.htm> eNom API Call.
-   
+
 Accepts the following arguments:
 
 =over 4

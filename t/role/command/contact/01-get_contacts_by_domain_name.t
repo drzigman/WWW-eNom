@@ -42,7 +42,7 @@ subtest 'Get Contacts For Domain With All Contact Defined' => sub {
             job_title         => 'Bug Squisher',
         }),
         admin_contact      => create_contact({
-            fax_number        => '18005551212',        
+            fax_number        => '18005551212',
         }),
         technical_contact  => create_contact(),
         billing_contact    => create_contact(),

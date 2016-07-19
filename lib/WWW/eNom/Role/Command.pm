@@ -78,7 +78,7 @@ __END__
 WWW::eNom::Role::Command - Basic Logic for Submission of Requests to eNom
 
 =head1 SYNOPSIS
- 
+
     use WWW::eNom;
 
     my $eNom     = WWW::eNom->new( ... );
@@ -112,7 +112,7 @@ Primary interface to L<eNom|http://www.enom.com/APICommandCatalog/> API that is 
 =head1 METHODS
 
 =head2 submit
- 
+
     use WWW::eNom;
 
     my $eNom     = WWW::eNom->new( ... );

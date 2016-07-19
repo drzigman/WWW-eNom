@@ -244,9 +244,9 @@ WWW::eNom::Role::Command::Raw - Low Level Access to eNom API
 =back
 
 =head1 DESCRIPTION
- 
+
 This role composes a series of methods into the consuming class (L<WWW::eNom>) that directly expose methods of the L<eNom|http://www.enom.com/APICommandCatalog/> API.  It is the lowest level of access to the eNom API and is intended only for the most advanced usages that are not covered by other commands.
- 
+
 B<NOTE> You almost never want to make this low level of a call.  You really should be looking at the L<commands|WWW::eNom/COMMANDS> to find the specific method to accomplish your goals.
 
 =head1 METHODS
@@ -269,9 +269,9 @@ However, if your heart is set then let's use an example method to demonstrate ho
         TLD => 'com',
     );
 
-Although not required, it is recommend that you specify a response_type of 'xml_simple' when making low level requests.  This will at least make the response a HashRef (rather than a string).  This response should look very similiar to the response documented by the specific method with eNom with the following modifications made to make the system easier to work with.
+Although not required, it is recommend that you specify a response_type of 'xml_simple' when making low level requests.  This will at least make the response a HashRef (rather than a string).  This response should look very similar to the response documented by the specific method with eNom with the following modifications made to make the system easier to work with.
 
-=over 4 
+=over 4
 
 =item "responses" returns an ArrayRef of HashRefs
 
@@ -310,6 +310,6 @@ These changes make a possible response look like:
         ]
     }
 
-However, keep in mind you will need to refer to the actual documentation from eNom because even similiar methods could have vastly different responses.
+However, keep in mind you will need to refer to the actual documentation from eNom because even similar methods could have vastly different responses.
 
 =cut
