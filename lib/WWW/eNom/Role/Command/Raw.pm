@@ -312,4 +312,6 @@ These changes make a possible response look like:
 
 However, keep in mind you will need to refer to the actual documentation from eNom because even similar methods could have vastly different responses.
 
+=for Pod::Coverage install_methods
+
 =cut

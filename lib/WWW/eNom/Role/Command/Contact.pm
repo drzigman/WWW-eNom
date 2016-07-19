@@ -132,7 +132,7 @@ Implements contact related operations with L<eNom|https://www.enom.com>'s API.
         print "Email Address of $contact_type is: " . $contacts->{$contact_type}->email . "\n";
     }
 
-Given a FQDN, returns a HashRef of contacts for that domain.  The keys for the returned HashRef are:
+Abstraction of the L<GetContacts|https://www.enom.com/api/API%20topics/api_GetContacts.htm> eNom API Call.  Given a FQDN, returns a HashRef of contacts for that domain.  The keys for the returned HashRef are:
 
 =over 4
 

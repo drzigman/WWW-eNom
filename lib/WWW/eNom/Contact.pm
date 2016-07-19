@@ -297,11 +297,11 @@ The L<ISO-3166-1 alpha-2 (two character country code)|https://en.wikipedia.org/w
 
 =head2 B<phone_number>
 
-An instance of L<WWW::eNom:PhoneNumber>, but this will coerce from a L<Number::Phone> object or a string based representation of the phone number.  This will also stringify to a human readable phone number.
+An instance of L<WWW::eNom::PhoneNumber>, but this will coerce from a L<Number::Phone> object or a string based representation of the phone number.  This will also stringify to a human readable phone number.
 
 =head2 fax_number
 
-An instance of L<WWW::eNom:PhoneNumber>, but this will coerce from a L<Number::Phone> object or a string based representation of the phone number.  This will also stringify to a human readable phone number.
+An instance of L<WWW::eNom::PhoneNumber>, but this will coerce from a L<Number::Phone> object or a string based representation of the phone number.  This will also stringify to a human readable phone number.
 
 Predicate of has_fax_number and clearer of clear_fax_number.
 
