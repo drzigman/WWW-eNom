@@ -95,9 +95,15 @@ WWW::eNom::Role::Command - Basic Logic for Submission of Requests to eNom
 
 =item L<WWW::eNom::Role::Command::Raw>
 
+=item L<WWW::eNom::Role::Command::Contact>
+
+=item L<WWW::eNom::Role::Command::Domain>
+
 =item L<WWW::eNom::Role::Command::Domain::Availability>
 
 =item L<WWW::eNom::Role::Command::Domain::Registration>
+
+=item L<WWW::eNom::Role::Command::Service>
 
 =back
 
