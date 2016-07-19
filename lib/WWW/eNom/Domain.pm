@@ -20,28 +20,24 @@ use Carp;
 # VERSION
 # ABSTRACT: Representation of Registered eNom Domain
 
-# DomainNameID
 has 'id' => (
     is       => 'ro',
     isa      => PositiveInt,
     required => 1,
 );
 
-# SLD.TLD
 has 'name' => (
     is       => 'ro',
     isa      => DomainName,
     required => 1,
 );
 
-# RegistrationStatus
 has 'status' => (
     is       => 'ro',
     isa      => Str,
     required => 1,
 );
 
-# ???
 has 'verification_status' => (
     is       => 'ro',
     isa      => Str,
@@ -60,7 +56,6 @@ has 'is_locked' => (
     required => 1,
 );
 
-# Extracted from Services, look for WPPS 1120 (on) / 1123 (off)
 has 'is_private' => (
     is       => 'ro',
     isa      => Bool,
@@ -73,7 +68,6 @@ has 'created_date' => (
     required => 1,
 );
 
-# Expiration
 has 'expiration_date' => (
     is       => 'ro',
     isa      => DateTime,
@@ -86,7 +80,6 @@ has 'ns' => (
     required => 1,
 );
 
-# GetContacts
 has 'registrant_contact' => (
     is       => 'ro',
     isa      => Contact,
@@ -152,3 +145,200 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
+
+=pod
+
+=head1 NAME
+
+WWW::eNom::Domain - Representation of Registered eNom Domain
+
+=head1 SYNOPSIS
+
+    use strict;
+    use warnings;
+
+    use WWW::eNom;
+    use WWW::eNom::Contact;
+    use WWW::eNom::Domain;
+
+    my $api = WWW::eNom->new( ... );
+
+    # Create New Domain Object, note that domain registration is handled by
+    # WWW::eNom::DomainRequest::Registration.
+    my $contact = WWW::eNom::Contact->new( ... );
+    my $domain  = WWW::eNom::Domain->new(
+        id                  => 42,
+        name                => 'drzigman.com',
+        status              => 'Paid',
+        verification_status => 'Pending Suspension',
+        is_auto_renew       => 0,
+        is_locked           => 1,
+        is_private          => 0,
+        create_date         => DateTime->...,
+        expiration_date     => DateTime->...,
+        ns                  => [ 'ns1.enom.com', 'ns2.enom.com' ],
+        registrant_contact  => $contact,
+        admin_contact       => $contact,
+        technical_contact   => $contact,
+        billing_contact     => $contact,
+    );
+
+    # Construct From eNom Response
+    my $response = $api->submit({
+        method => 'GetDomainInfo',
+        params => {
+            Domain => 'drzigman.com',
+        }
+    });
+
+    my $domain = WWW::eNom::Domain->construct_from_response(
+        domain_info   => $response->{GetDomainInfo},
+        is_auto_renew => $api->get_is_domain_auto_renew_by_name( 'drzigman.com' ),
+        is_locked     => $api->get_is_domain_locked_by_name( 'drzigman.com' ),
+        name_servers  => $api->get_domain_name_servers_by_name( 'drzigman.com' ),
+        contacts      => $api->get_contacts_by_domain_name( 'drzigman.com' ),
+        created_date  => $api->get_domain_created_date_by_name( 'drzigman.com' ),
+    );
+
+
+=head1 WITH
+
+=over 4
+
+=item L<WWW::eNom::Role::ParseDomain>
+
+=back
+
+=head1 DESCRIPTION
+
+Represents L<eNom|https://www.enom.com> domains, containing all related information.  For most operations this will be the base object that is used to represent the data.
+
+=head1 attributes
+
+=head2 B<id>
+
+The domain id of the domain in L<eNom|https://www.enom.com>'s system.
+
+=head2 B<name>
+
+The FQDN this domain object represents
+
+=head2 B<status>
+
+Current status of the domain, related more so to if it's been paid or if it has been deleted or expired.
+
+=head2 B<verification_status>
+
+According to ICANN rules, all new gTLD domains that were registered after January 1st, 2014 must be verified.  verification_status describes the current state of this verification and begins in 'Pending Suspension' until the domain is either verified or is suspended due to a lack of verification.
+
+For details on the ICANN policy please see the riveting ICANN Registrar Agreement L<https://www.icann.org/resources/pages/approved-with-specs-2013-09-17-en>.
+
+=head2 B<is_auto_renew>
+
+Boolean that indicates if eNom should automagically renew this domain.
+
+=head2 B<is_locked>
+
+Boolean indicating if the domain is currently locked, preventing transfer.
+
+=head2 B<is_private>
+
+Boolean indicating if this domain uses WHOIS Privacy.
+
+=head2 B<created_date>
+
+Date this domain registration was created.
+
+=head2 B<expiration_date>
+
+Date this domain registration expires.
+
+=head2 B<ns>
+
+ArrayRef of Domain Names that are authoritative nameservers for this domain.
+
+=head2 B<registrant_contact>
+
+A L<WWW::eNom::Contact> for the Registrant Contact.
+
+=head2 B<admin_contact>
+
+A L<WWW::eNom::Contact> for the Admin Contact.
+
+=head2 B<technical_contact>
+
+A L<WWW::eNom::Contact> for the Technical Contact.
+
+=head2 B<billing_contact>
+
+A L<WWW::eNom::Contact> for the Billing Contact.
+
+B<NOTE> L<eNom|https://www.eNom.com> actually calls this the B<AuxBilling> contact since the primary billing contact is the reseller's information.
+
+=head1 METHODS
+
+=head2 construct_from_response
+
+    my $api = WWW::eNom->new( ... );
+
+    my $response = $api->submit({
+        method => 'GetDomainInfo',
+        params => {
+            Domain => 'drzigman.com',
+        }
+    });
+
+    my $domain = WWW::eNom::Domain->construct_from_response(
+        domain_info   => $response->{GetDomainInfo},
+        is_auto_renew => $api->get_is_domain_auto_renew_by_name( $domain_name ),
+        is_locked     => $api->get_is_domain_locked_by_name( $domain_name ),
+        name_servers  => $api->get_domain_name_servers_by_name( $domain_name ),
+        contacts      => $api->get_contacts_by_domain_name( $domain_name ),
+        created_date  => $api->get_domain_created_date_by_name( $domain_name ),
+    );
+
+Creates an instance of $self given several parameters:
+
+=over 4
+
+=item domain_info
+
+HashRef response to L<eNom's GetDomainInfo|https://www.enom.com/api/API%20topics/api_GetDomainInfo.htm>.  This, unfortunately, does not contain all of the needed data so several other parameters are required.
+
+=item is_auto_renew
+
+Boolean, indicating if L<eNom|https://www.enom.com> will auto renew this domain.
+
+=item is_locked
+
+Boolean, indicating if this domain is locked to prevent transfer.
+
+=item name_servers
+
+ArrayRef of Domain Names that are the authoritative nameservers for this domain.
+
+=item contacts
+
+HashRef with the keys being:
+
+=over 4
+
+=item registrant_contact
+
+=item admin_contact
+
+=item technical_contact
+
+=item billing_contact
+
+=back
+
+And the values being instances of L<WWW::eNom::Contact> that correspond to the key's contact type.
+
+=item created_date
+
+DateTime that this domain was first created/registered.
+
+=back
+
+=cut

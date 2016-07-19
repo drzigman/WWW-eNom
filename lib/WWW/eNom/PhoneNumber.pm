@@ -116,7 +116,7 @@ L<eNom|http://www.enom.com/APICommandCatalog/> is rather picky when it comes to 
 
 =head2 B<_number_phone_obj>
 
-This private attribute contains an instance of L<Number::Phone>.  While you certainly can set it in the call to new, it's not nessicary as an around BUILDARGS will take the values passed to new and ensure this attribute is set.
+This private attribute contains an instance of L<Number::Phone>.  While you certainly can set it in the call to new, it's not necessary as an around BUILDARGS will take the values passed to new and ensure this attribute is set.
 
 There really is no reason to do anything with this attribute.
 

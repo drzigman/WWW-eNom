@@ -182,8 +182,31 @@ WWW::eNom::Contact - Representation of eNom Contact
 
 =head1 SYNOPSIS
 
+    use strict;
+    use warnings;
+
+    use WWW::eNom;
+    use WWW::eNom::Contact;
+
     my $api     = WWW::eNom->new( ... );
     my $contact = WWW::eNom::Contact->new( ... );
+
+    # New Contact Object
+    my $contact = WWW::eNom::Contact->new(
+        first_name        => 'Ada',
+        last_name         => 'Byron',
+        organization_name => 'Lovelace',                # Optional
+        job_title         => 'Countess',                # Optional if no organization_name, otherwise required
+        address1          => 'University of London',
+        address2          => 'Analytical Engine Dept',  # Optional
+        city              => 'London',
+        #state            => 'Texas',                   # Optional, primarily used for US Contacts
+        country           => 'GB',
+        zipcode           => 'WC1E 7HU',
+        email             => 'ada.byron@lovelace.com',
+        phone_number      => '18005551212',
+        fax_number        => '18005551212',             # Optional if no organization_name, otherwise required
+    );
 
     # Contact Creation
     my $registrant_contact_creation_payload = $contact->construct_creation_request('Registrant');
