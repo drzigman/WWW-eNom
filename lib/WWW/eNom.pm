@@ -71,30 +71,166 @@ WWW::eNom - Interact with eNom, Inc.'s reseller API
 
     use WWW::eNom;
 
-    my $enom = WWW::eNom->new(
+    my $eNom = WWW::eNom->new(
         username      => "resellid",
         password      => "resellpw",
-        response_type => "xml_simple",
-        test          => 1
+        response_type => "xml_simple",  # Optional, defaults to xml_simple
+        test          => 1              # Optional, defaults to 0 ( production )
     );
+
+    # Check If Domains Are Available
+    my $domain_availabilities = $eNom->check_domain_availability(
+        slds => [qw( cpan drzigman brainstormincubator )],
+        tlds => [qw( com net org )],
+        suggestions => 0,
+    );
+
+=head1 DESCRIPTION
+
+L<WWW::eNom> is a module for interacting with the L<eNom|https://www.enom.com> API.  eNom is a domain registrar and the API performs operations such as checking domain availability, purchasing domains, and managing them.
+
+This module is broken down into two primary components (documented below).  These are L<WWW::eNom/COMMANDS> which are used for making requests and L<WWW::eNom/OBJECTS> which are used to represent data.  Below these, documentation for the L<WWW::eNom> module is included.
+
+=head1 COMMANDS
+
+Commands are how operations are performed using the L<WWW:eNom> API.  They are separated into related operations, for documentation on the specific command please see the linked pages.
+
+=head2 L<Raw|WWW::eNom::Role::Command::Raw>
+
+Love level direct access to the eNom API.  You rarely want to make use of this and instead want to use the abstracted commands outline below.
+
+=head2 L<Contact|WWW::eNom::Role::Command::Contact>
+
+Contact retrieval.
+
+=over 4
+
+=item L<get_contacts_by_domain_name|WWW::eNom::Role::Command::Contact/get_contacts_by_domain_name>
+
+=back
+
+=head2 L<Domain Availability|WWW::eNom::Role::Command::Domain::Availability>
+
+Use for checking to see if a domain is available for registration as well as getting suggestions of other potentially relevant domains.
+
+=over 4
+
+=item L<check_domain_availability|WWW::eNom::Role::Command::Domain::Availability/check_domain_availability>
+
+=item L<suggest_domain_names|WWW::eNom::Role::Command::Domain::Availability/suggest_domain_names>
+
+=back
+
+=head2 L<Domain Registration|WWW::eNom::Role::Command::Domain::Registration>
+
+New Domain Registration.
+
+=over 4
+
+=item L<register_domain|WWW::eNom::Role::Command::Domain::Registration/register_domain>
+
+=back
+
+=head2 L<Domain|WWW::eNom::Role::Command::Domain>
+
+Domain retrieval and management.
+
+=over 4
+
+=item L<get_domain_by_name|WWW::eNom::Role::Command::Domain/get_domain_by_name>
+
+=item L<get_is_domain_locked_by_name|WWW::eNom::Role::Command::Domain/get_is_domain_locked_by_name>
+
+=item L<get_domain_name_servers_by_name|WWW::eNom::Role::Command::Domain/get_domain_name_servers_by_name>
+
+=item L<get_domain_created_date_by_name|WWW::eNom::Role::Command::Domain/get_domain_created_date_by_name>
+
+=back
+
+=head2 L<Service|WWW::eNom::Role::Command::Service>
+
+Addon products that can be sold along with domains.
+
+=over 4
+
+=item L<purchase_domain_privacy_for_domain|WWW::eNom::Role::Command::Service/purchase_domain_privacy_for_domain>
+
+=back
+
+=head1 OBJECTS
+
+Rather than working with messy XML objects or HashRefs, WWW::eNom implements a series of L<Moose> objects for making requests and processing responses.  All commands that take an object have coercion so a HashRef can be used in it's place.
+
+=head2 L<WWW::eNom>
+
+Primary interface to eNom.  Documented further below.
+
+=head2 L<WWW::eNom::Contact>
+
+WHOIS data contacts.  Typically (with few exceptions) domains contain a Registrant, Admin, Technical, and Billing contact.
+
+=head2 L<WWW::eNom::Domain>
+
+A registered domain and all of the domain's related information.
+
+=head2 L<WWW::eNom::DomainRequest::Registration>
+
+Request to register a domain.
+
+=head1 WITH
+
+=over 4
+
+=item L<WWW::eNom::Role::Command>
+
+=back
+
+=head1 ATTRIBUTES
+
+=head2 B<username>
+
+eNom Reseller ID
+
+=head2 B<password>
+
+eNom Reseller Password
+
+=head2 test
+
+Boolean that defaults to false.  If true, requests will be sent to the eNom test endpoint rather than production.
+
+=head2 response_type
+
+Defaults to 'xml_simple'.  Valid values include:
+
+=over 4
+
+=item xml
+
+=item xml_simple
+
+=item html
+
+=item text
+
+=back
+
+It should be noted that this setting is really only relevant when making L<Raw|WWW::eNom::Role::Command::Raw> requests of the eNom API.  When doing so this attribute defines the format of the responses.
 
 =head1 METHODS
 
 =head2 new
 
+    my $eNom = WWW::eNom->new(
+        username      => "resellid",
+        password      => "resellpw",
+        response_type => "xml_simple",  # Optional, defaults to xml_simple
+        test          => 1              # Optional, defaults to 0 ( production )
+    );
+
 Constructs a new object for interacting with the eNom API. If the "test" parameter is given, then the API calls will be made to the test server instead of the live one.
 
 As of v0.3.1, an optional "response_type" parameter is supported. For the sake of backward compatibility, the default is "xml_simple"; see below for an explanation of this response type. Use of any other valid option will lead to the return of string responses straight from the eNom API. These options are:
-
-=over
-
-=item * xml
-
-=item * html
-
-=item * text
-
-=back
 
 =head1 RELEASE NOTE
 

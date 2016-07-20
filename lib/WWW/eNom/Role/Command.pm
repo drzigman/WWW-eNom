@@ -14,7 +14,11 @@ use Carp;
 
 requires 'response_type';
 with 'WWW::eNom::Role::Command::Raw',
-     'WWW::eNom::Role::Command::Domain::Availability';
+     'WWW::eNom::Role::Command::Contact',
+     'WWW::eNom::Role::Command::Domain',
+     'WWW::eNom::Role::Command::Domain::Availability',
+     'WWW::eNom::Role::Command::Domain::Registration',
+     'WWW::eNom::Role::Command::Service';
 
 # VERSION
 # ABSTRACT: Submission of eNom Commands
@@ -74,7 +78,7 @@ __END__
 WWW::eNom::Role::Command - Basic Logic for Submission of Requests to eNom
 
 =head1 SYNOPSIS
- 
+
     use WWW::eNom;
 
     my $eNom     = WWW::eNom->new( ... );
@@ -91,7 +95,15 @@ WWW::eNom::Role::Command - Basic Logic for Submission of Requests to eNom
 
 =item L<WWW::eNom::Role::Command::Raw>
 
+=item L<WWW::eNom::Role::Command::Contact>
+
+=item L<WWW::eNom::Role::Command::Domain>
+
 =item L<WWW::eNom::Role::Command::Domain::Availability>
+
+=item L<WWW::eNom::Role::Command::Domain::Registration>
+
+=item L<WWW::eNom::Role::Command::Service>
 
 =back
 
@@ -106,7 +118,7 @@ Primary interface to L<eNom|http://www.enom.com/APICommandCatalog/> API that is 
 =head1 METHODS
 
 =head2 submit
- 
+
     use WWW::eNom;
 
     my $eNom     = WWW::eNom->new( ... );
