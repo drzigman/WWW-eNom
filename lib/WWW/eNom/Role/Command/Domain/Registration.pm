@@ -48,7 +48,7 @@ sub register_domain {
 
         # Because there can be some lag between domain creation and being able to
         # fetch the data from eNom, give it a few tries before calling it a failure
-        for ( my $attempt_number = 1; $attempt_number <= 3; $attempt_number++ ) {
+        for ( my $attempt_number = 1; $attempt_number <= 5; $attempt_number++ ) {
             my $domain;
             try {
                 $domain = $self->get_domain_by_name( $args{request}->name )
@@ -118,6 +118,6 @@ Returned is a fully formed L<WWW::eNom::Domain> object.
 
 B<NOTE> This call is fairly slow (several seconds to complete).  This is because, in addition to requesting the domain registration, several API calls are made to fetch back out the recently created domain registration and populate a L<WWW::eNom::Domain> object.
 
-B<FURTHER NOTE> It is possible for the domain registration to succeed but this method fail to retrieve the L<WWW::eNom::Domain>.  When that occurs this method will croak with 'Domain registered but unable to retrieve it'.  In this case you can either just move on (if you don't care about inspecting the L<WWW::eNom::Domain>) or you can request it again using L<WWW::eNom::Role::Command::Domain/get_domain_by_id>.
+B<FURTHER NOTE> It is possible for the domain registration to succeed but this method fail to retrieve the L<WWW::eNom::Domain>.  When that occurs this method will croak with 'Domain registered but unable to retrieve it'.  In this case you can either just move on (if you don't care about inspecting the L<WWW::eNom::Domain>) or you can request it again using L<WWW::eNom::Role::Command::Domain/get_domain_by_name>.
 
 =cut

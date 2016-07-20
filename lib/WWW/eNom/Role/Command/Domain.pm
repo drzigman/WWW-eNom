@@ -349,7 +349,7 @@ This method will croak if the domain is owned by someone else or if it is not re
         print "Domain will NOT be renewed automatically!\n";
     }
 
-Abstraction of the L<GetRenew/https://www.enom.com/api/API%20topics/api_GetRenew.htm> eNom API Call.  Given a FQDN, returns a truthy value if auto renew is enabled for this domain (you want eNom to automatically renew this) or a falsey value if auto renew is not enabled for this domain.
+Abstraction of the L<GetRenew|https://www.enom.com/api/API%20topics/api_GetRenew.htm> eNom API Call.  Given a FQDN, returns a truthy value if auto renew is enabled for this domain (you want eNom to automatically renew this) or a falsey value if auto renew is not enabled for this domain.
 
 This method will croak if the domain is owned by someone else or if it is not registered.
 
