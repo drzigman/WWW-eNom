@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( DomainName );
+use WWW::eNom::Types qw( Contact DomainName HashRef );
 
 use WWW::eNom::Contact;
 
@@ -20,6 +20,8 @@ Readonly my $ENOM_CONTACT_TYPE_MAPPING => {
     Tech       => 'technical_contact',
     AuxBilling => 'billing_contact',
 };
+
+Readonly my $CONTACT_TYPE_ENOM_MAPPING => { reverse %{ $ENOM_CONTACT_TYPE_MAPPING } };
 
 requires 'submit';
 
@@ -88,6 +90,78 @@ sub get_contacts_by_domain_name {
     }
 }
 
+sub update_contacts_for_domain_name {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name         => { isa => DomainName },
+        registrant_contact  => { isa => Contact, optional => 1 },
+        admin_contact       => { isa => Contact, optional => 1 },
+        technical_contact   => { isa => Contact, optional => 1 },
+        billing_contact     => { isa => Contact, optional => 1 },
+    );
+
+    try {
+        # Replace all contacts at once
+        if(    ( scalar grep { exists $args{$_} && defined $args{$_} } values %{ $ENOM_CONTACT_TYPE_MAPPING } )
+            == ( scalar values %{ $ENOM_CONTACT_TYPE_MAPPING } ) ) {
+            $self->_update_contacts({
+                payload => {
+                    Domain => $args{domain_name},
+                    %{ $args{registrant_contact}->construct_creation_request('Registrant') },
+                    %{ $args{admin_contact}->construct_creation_request('Admin')           },
+                    %{ $args{technical_contact}->construct_creation_request('Tech')        },
+                    %{ $args{billing_contact}->construct_creation_request('AuxBilling')    },
+                }
+            });
+        }
+        # Replace contacts one at a time
+        else {
+            for my $contact_type ( values %{ $ENOM_CONTACT_TYPE_MAPPING } ) {
+                if( !exists $args{ $contact_type } || !defined $args{ $contact_type } ) {
+                    next;
+                }
+
+                $self->_update_contacts({
+                    payload => {
+                        Domain      => $args{domain_name},
+                        ContactType => uc $CONTACT_TYPE_ENOM_MAPPING->{ $contact_type },
+                        %{ $args{ $contact_type }->construct_creation_request( $CONTACT_TYPE_ENOM_MAPPING->{ $contact_type } ) },
+                    }
+                });
+            }
+        }
+    }
+    catch {
+        croak $_;
+    };
+
+    return $self->get_contacts_by_domain_name( $args{domain_name} );
+}
+
+sub _update_contacts {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        payload => { isa => HashRef },
+    );
+
+    my $response = $self->submit({
+        method => 'Contacts',
+        params =>  $args{payload},
+    });
+
+    if( $response->{ErrCount} > 0 ) {
+        if( grep { $_ eq 'Domain name ID not found' } @{ $response->{errors} } ) {
+            croak 'Domain not found in your account';
+        }
+
+        croak 'Unknown error';
+    }
+
+    return $response;
+}
+
 1;
 
 __END__
@@ -109,6 +183,20 @@ WWW::eNom::Role::Command::Contact - Contact Related Operations
     for my $contact_type (qw( registrant_contact admin_contact technical_contact billing_contact )) {
         print "Email Address of $contact_type is: " . $contacts->{$contact_type}->email . "\n";
     }
+
+    # Update Contacts
+    my $new_registrant_contact = WWW::eNom::Contact->new( ... );
+    my $new_admin_contact      = WWW::eNom::Contact->new( ... );
+    my $new_technical_contact  = WWW::eNom::Contact->new( ... );
+    my $new_billing_contact    = WWW::eNom::Contact->new( ... );
+
+    my $updated_contacts = $api->update_contacts_for_domain_name(
+        domain_name        => 'drzigman.com',
+        registrant_contact => $new_registrant_contact,   # Optional
+        admin_contact      => $new_admin_contact,        # Optional
+        technical_contact  => $new_technical_contact,    # Optional
+        billing_contact    => $new_billing_contact,      # Optional
+    );
 
 =head1 REQUIRES
 
@@ -147,5 +235,19 @@ Abstraction of the L<GetContacts|https://www.enom.com/api/API%20topics/api_GetCo
 =back
 
 Each of these keys point to a value which is an instance of L<WWW::eNom::Contact>.
+
+=head2 update_contacts_for_domain_name
+
+    my $updated_contacts = $api->update_contacts_for_domain_name(
+        domain_name        => 'drzigman.com',
+        registrant_contact => $new_registrant_contact,   # Optional
+        admin_contact      => $new_admin_contact,        # Optional
+        technical_contact  => $new_technical_contact,    # Optional
+        billing_contact    => $new_billing_contact,      # Optional
+    );
+
+Abstraction of the L<Contacts|https://www.enom.com/api/API%20topics/api_Contacts.htm> eNom API Call.  Given a FQDN and new contacts to use, updates the specified contacts to match those provided.  Returned is a HashRef of Contacts (see L<get_contacts_by_domain_name> for response format).
+
+One interesting thing about this method is that you only need specify the contacts you wish to update.  If you wish to update registrant, admin, technical, and billing great!  Go for it and include all of them in one call.  If you wish to update only a subset of the contacts (1, 2 or 3 of them) you should pass only the contacts to be updated.
 
 =cut

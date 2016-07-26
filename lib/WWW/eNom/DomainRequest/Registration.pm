@@ -101,8 +101,8 @@ sub construct_request {
         AllowQueueing   => ( $self->is_queueable     ? 1    : 0     ),
         NumYears        => $self->years,
         %{ $self->registrant_contact->construct_creation_request('Registrant') },
-        %{ $self->admin_contact->construct_creation_request('Admin')      },
-        %{ $self->technical_contact->construct_creation_request('Tech')  },
+        %{ $self->admin_contact->construct_creation_request('Admin')           },
+        %{ $self->technical_contact->construct_creation_request('Tech')        },
         %{ $self->billing_contact->construct_creation_request('AuxBilling')    },
     };
 }
