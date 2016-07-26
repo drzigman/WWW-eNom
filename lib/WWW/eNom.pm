@@ -107,6 +107,8 @@ Contact retrieval.
 
 =item L<get_contacts_by_domain_name|WWW::eNom::Role::Command::Contact/get_contacts_by_domain_name>
 
+=item L<update_contacts_for_domain_name|WWW::eNom::Role::Command::Contact/update_contacts_for_domain_name>
+
 =back
 
 =head2 L<Domain Availability|WWW::eNom::Role::Command::Domain::Availability>
