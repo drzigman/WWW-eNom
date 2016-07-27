@@ -233,8 +233,9 @@ sub _set_domain_auto_renew {
     my $self     = shift;
     my ( %args ) = validated_hash(
         \@_,
-        domain_name   => { isa => DomainName },
-        is_auto_renew => { isa => Bool },
+        domain_name           => { isa => DomainName },
+        is_auto_renew         => { isa => Bool },
+        privacy_is_auto_renew => { isa => Bool, optional => 1 },
     );
 
     return try {
@@ -243,6 +244,7 @@ sub _set_domain_auto_renew {
             params => {
                 Domain    => $args{domain_name},
                 RenewFlag => ( $args{is_auto_renew} ? 1 : 0 ),
+                defined $args{privacy_is_auto_renew} ? ( WPPSRenew => ( $args{privacy_is_auto_renew} ? 1 : 0 ) ) : ( ),
             }
         });
 

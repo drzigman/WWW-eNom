@@ -30,6 +30,7 @@ use MooseX::Types -declare => [qw(
     URI
 
     Contact
+    Domain
     DomainAvailability
     DomainAvailabilities
     DomainRegistration
@@ -80,6 +81,7 @@ class_type URI,         { class => 'URI' };
 coerce URI, from Str, via { URI->new( $_ ) };
 
 class_type Contact,            { class => 'WWW::eNom::Contact' };
+class_type Domain,             { class => 'WWW::eNom::Domain' };
 class_type DomainAvailability, { class => 'WWW::eNom::DomainAvailability' };
 subtype DomainAvailabilities, as ArrayRef[DomainAvailability];
 class_type DomainRegistration, { class => 'WWW::eNom::DomainRequest::Registration' };

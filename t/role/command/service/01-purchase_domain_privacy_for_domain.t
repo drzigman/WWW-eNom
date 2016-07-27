@@ -13,7 +13,6 @@ use Test::WWW::eNom qw( create_api );
 use Test::WWW::eNom::Domain qw( create_domain );
 
 use DateTime;
-use DateTime::Format::DateParse;
 
 subtest 'Purchase Domain Privacy For Unregistered Domain' => sub {
     my $api         = create_api();
@@ -63,22 +62,11 @@ subtest 'Purchase Domain Privacy For Domain - 1 Years - Manual Renew' => sub {
     };
 
     subtest 'Inspect Privacy Service' => sub {
-        my $response;
-        my $lived_through_wpps_info = lives_ok {
-            $response = $api->submit({
-                method => 'GetWPPSInfo',
-                params => {
-                    Domain => $domain->name,
-                }
-            });
-        } 'Lives through fetching details about Privacy';
+        my $is_privacy_auto_renew = $api->get_is_privacy_auto_renew_by_name( $domain->name );
+        cmp_ok( $is_privacy_auto_renew, '==', 0, 'Correct privacy auto renew' );
 
-        if( $lived_through_wpps_info ) {
-            cmp_ok( $response->{GetWPPSInfo}{WPPSAutoRenew}, 'eq', 'No', 'Correct auto_renew' );
-
-            my $privacy_expiration_date = DateTime::Format::DateParse->parse_datetime( $response->{GetWPPSInfo}{WPPSExpDate} );
-            cmp_ok( $privacy_expiration_date->year - DateTime->now->year, 'eq', 1, 'Correct years' );
-        }
+        my $privacy_expiration_date = $api->get_privacy_expiration_date_by_name( $domain->name );
+        cmp_ok( $privacy_expiration_date->year - DateTime->now->year, 'eq', 1, 'Correct years' );
     };
 };
 
@@ -104,22 +92,11 @@ subtest 'Purchase Domain Privacy For Domain - 2 Years - Auto Renew' => sub {
     };
 
     subtest 'Inspect Privacy Service' => sub {
-        my $response;
-        my $lived_through_wpps_info = lives_ok {
-            $response = $api->submit({
-                method => 'GetWPPSInfo',
-                params => {
-                    Domain => $domain->name,
-                }
-            });
-        } 'Lives through fetching details about Privacy';
+        my $is_privacy_auto_renew = $api->get_is_privacy_auto_renew_by_name( $domain->name );
+        cmp_ok( $is_privacy_auto_renew, '==', 1, 'Correct privacy auto renew' );
 
-        if( $lived_through_wpps_info ) {
-            cmp_ok( $response->{GetWPPSInfo}{WPPSAutoRenew}, 'eq', 'Yes', 'Correct auto_renew' );
-
-            my $privacy_expiration_date = DateTime::Format::DateParse->parse_datetime( $response->{GetWPPSInfo}{WPPSExpDate} );
-            cmp_ok( $privacy_expiration_date->year - DateTime->now->year, 'eq', 2, 'Correct years' );
-        }
+        my $privacy_expiration_date = $api->get_privacy_expiration_date_by_name( $domain->name );
+        cmp_ok( $privacy_expiration_date->year - DateTime->now->year, 'eq', 2, 'Correct years' );
     };
 };
 

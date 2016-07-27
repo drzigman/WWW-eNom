@@ -174,7 +174,7 @@ WWW::eNom::Domain - Representation of Registered eNom Domain
         is_auto_renew       => 0,
         is_locked           => 1,
         is_private          => 0,
-        create_date         => DateTime->...,
+        created_date        => DateTime->...,
         expiration_date     => DateTime->...,
         ns                  => [ 'ns1.enom.com', 'ns2.enom.com' ],
         registrant_contact  => $contact,

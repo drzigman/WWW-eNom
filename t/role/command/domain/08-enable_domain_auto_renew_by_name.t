@@ -27,7 +27,7 @@ subtest 'Enable Auto Renew On Domain Registered To Someone Else' => sub {
 
     throws_ok {
         $api->enable_domain_auto_renew_by_name( $domain_name );
-    } qr/Domain not found in your account/, 'Throws on unregistered domain';
+    } qr/Domain not found in your account/, 'Throws on domain registered to someone else';
 };
 
 subtest 'Enable Auto Renew On Domain With Auto Renew Off' => sub {

@@ -163,9 +163,19 @@ Domain retrieval and management.
 
 Addon products that can be sold along with domains.
 
+=head3 Domain Privacy
+
 =over 4
 
 =item L<purchase_domain_privacy_for_domain|WWW::eNom::Role::Command::Service/purchase_domain_privacy_for_domain>
+
+=item L<get_is_privacy_auto_renew_by_name|WWW::eNom::Role::Command::Service/get_is_privacy_auto_renew_by_name>
+
+=item L<get_privacy_expiration_date_by_name|WWW::eNom::Role::Command::Service/get_privacy_expiration_date_by_name>
+
+=item L<enable_privacy_auto_renew_for_domain|WWW::eNom::Role::Command::Service/enable_privacy_auto_renew_for_domain>
+
+=item L<disable_privacy_auto_renew_for_domain|WWW::eNom::Role::Command::Service/disable_privacy_auto_renew_for_domain>
 
 =back
 

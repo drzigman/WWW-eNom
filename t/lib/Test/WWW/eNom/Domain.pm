@@ -13,12 +13,53 @@ use WWW::eNom::Types qw( Bool Contact DomainName DomainNames PositiveInt );
 use FindBin;
 use lib "$FindBin::Bin/../../../../lib";
 use Test::WWW::eNom qw( create_api );
-use Test::WWW::eNom::Contact qw( create_contact );
+use Test::WWW::eNom::Contact qw( create_contact $DEFAULT_CONTACT );
 
+use WWW::eNom::Domain;
 use WWW::eNom::DomainRequest::Registration;
 
+use DateTime;
+
+use Readonly;
+Readonly our $UNREGISTERED_DOMAIN => WWW::eNom::Domain->new(
+    id                  => 42,
+    name                => 'NOT-REGISTERED-' . random_string('ccnnccnnccnnccnnccnnccnnccnn') . '.com',
+    status              => 'Paid',
+    verification_status => 'Pending Suspension',
+    is_auto_renew       => 0,
+    is_locked           => 1,
+    is_private          => 0,
+    created_date        => DateTime->now,
+    expiration_date     => DateTime->now->add( years => 1 ),
+    ns                  => [ 'ns1.enom.com', 'ns2.enom.com' ],
+    registrant_contact  => $DEFAULT_CONTACT,
+    admin_contact       => $DEFAULT_CONTACT,
+    technical_contact   => $DEFAULT_CONTACT,
+    billing_contact     => $DEFAULT_CONTACT,
+);
+
+Readonly our $NOT_MY_DOMAIN => WWW::eNom::Domain->new(
+    id                  => 42,
+    name                => 'enom.com',
+    status              => 'Paid',
+    verification_status => 'Pending Suspension',
+    is_auto_renew       => 0,
+    is_locked           => 1,
+    is_private          => 0,
+    created_date        => DateTime->now,
+    expiration_date     => DateTime->now->add( years => 1 ),
+    ns                  => [ 'ns1.enom.com', 'ns2.enom.com' ],
+    registrant_contact  => $DEFAULT_CONTACT,
+    admin_contact       => $DEFAULT_CONTACT,
+    technical_contact   => $DEFAULT_CONTACT,
+    billing_contact     => $DEFAULT_CONTACT,
+);
+
 use Exporter 'import';
-our @EXPORT_OK = qw( create_domain );
+our @EXPORT_OK = qw(
+    create_domain
+    $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN
+);
 
 sub create_domain {
     my ( %args ) = validated_hash(
