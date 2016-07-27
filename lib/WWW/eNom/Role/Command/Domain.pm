@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( DomainName );
+use WWW::eNom::Types qw( Bool DomainName );
 
 use WWW::eNom::Domain;
 
@@ -90,6 +90,60 @@ sub get_is_domain_locked_by_name {
     }
     catch {
         croak $_;
+    };
+}
+
+sub enable_domain_lock_by_name {
+    my $self            = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_locking(
+        domain_name => $domain_name,
+        is_locked   => 1,
+    );
+}
+
+sub disable_domain_lock_by_name {
+    my $self            = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_locking(
+        domain_name => $domain_name,
+        is_locked   => 0,
+    );
+}
+
+sub _set_domain_locking {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name => { isa => DomainName },
+        is_locked   => { isa => Bool },
+    );
+
+    return try {
+        my $response = $self->submit({
+            method => 'SetRegLock',
+            params => {
+                Domain          => $args{domain_name},
+                UnlockRegistrar => ( !$args{is_locked} ? 1 : 0 ),
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            if( grep { $_ =~ m/domain is already/ } @{ $response->{errors} } ) {
+                # NO OP, what I asked for is already done
+            }
+        }
+
+        return $self->get_domain_by_name( $args{domain_name} );
+    }
+    catch {
+        croak "$_";
     };
 }
 
@@ -240,6 +294,7 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     # Get a fully formed WWW::eNom::Domain object for a domain
     my $domain = $api->get_domain_by_name( 'drzigman.com' );
 
+
     # Check if a domain is locked
     if( $api->get_is_domain_locked_by_name( 'drzigman.com' ) ) {
         print "Domain is Locked!\n";
@@ -247,6 +302,13 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     else {
         print "Domain is NOT Locked!\n";
     }
+
+    # Lock Domain
+    my $updated_domain = $api->enable_domain_lock_by_name( 'drzigman.com' );
+
+    # Unlock Domain
+    my $updated_domain = $api->disable_domain_lock_by_name( 'drzigman.com' );
+
 
     # Get domain authoritative nameservers
     for my $ns ( $api->get_domain_name_servers_by_name( 'drzigman.com' ) ) {
@@ -327,6 +389,22 @@ Given a FQDN, this method returns a fully formed L<WWW::eNom::Domain> object.  I
     }
 
 Abstraction of the L<GetRegLock|https://www.enom.com/api/API%20topics/api_GetRegLock.htm> eNom API Call.  Given a FQDN, returns a truthy value if the domain is locked and falsey if it is not.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 enable_domain_lock_by_name
+
+    my $updated_domain = $api->enable_domain_lock_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRegLock|https://www.enom.com/api/API%20topics/api_SetRegLock.htm> eNom API Call.  Given a FQDN, enables the registrar lock for the provided domain.  If the domain is already locked this is effectively a NO OP.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 disable_domain_lock_by_name
+
+    my $updated_domain = $api->disable_domain_lock_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRegLock|https://www.enom.com/api/API%20topics/api_SetRegLock.htm> eNom API Call.  Given a FQDN, disabled the registrar lock for the provided domain.  If the domain is already unlocked this is effectively a NO OP.
 
 This method will croak if the domain is owned by someone else or if it is not registered.
 
