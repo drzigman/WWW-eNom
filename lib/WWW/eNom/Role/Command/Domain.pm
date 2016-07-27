@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( DomainName );
+use WWW::eNom::Types qw( Bool DomainName DomainNames );
 
 use WWW::eNom::Domain;
 
@@ -93,6 +93,60 @@ sub get_is_domain_locked_by_name {
     };
 }
 
+sub enable_domain_lock_by_name {
+    my $self            = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_locking(
+        domain_name => $domain_name,
+        is_locked   => 1,
+    );
+}
+
+sub disable_domain_lock_by_name {
+    my $self            = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_locking(
+        domain_name => $domain_name,
+        is_locked   => 0,
+    );
+}
+
+sub _set_domain_locking {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name => { isa => DomainName },
+        is_locked   => { isa => Bool },
+    );
+
+    return try {
+        my $response = $self->submit({
+            method => 'SetRegLock',
+            params => {
+                Domain          => $args{domain_name},
+                UnlockRegistrar => ( !$args{is_locked} ? 1 : 0 ),
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            if( grep { $_ =~ m/domain is already/ } @{ $response->{errors} } ) {
+                # NO OP, what I asked for is already done
+            }
+        }
+
+        return $self->get_domain_by_name( $args{domain_name} );
+    }
+    catch {
+        croak "$_";
+    };
+}
+
 sub get_domain_name_servers_by_name {
     my $self = shift;
     my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
@@ -124,6 +178,43 @@ sub get_domain_name_servers_by_name {
     };
 }
 
+sub update_nameservers_for_domain_name {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name => { isa => DomainName },
+        ns          => { isa => DomainNames },
+    );
+
+    try {
+        my $response = $self->submit({
+            method => 'ModifyNS',
+            params => {
+                Domain => $args{domain_name},
+                map { 'NS' . ( $_ + 1 ) => $args{ns}->[ $_ ] } 0 .. ( scalar (@{ $args{ns} }) - 1)
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            if( grep { $_ =~ m/could not be registered/ } @{ $response->{errors} } ) {
+                croak 'Invalid Nameserver provided';
+            }
+
+            croak 'Unknown error';
+        }
+    }
+    catch {
+        croak $_;
+    };
+
+
+    return $self->get_domain_by_name( $args{domain_name} );
+}
+
 sub get_is_domain_auto_renew_by_name {
     my $self = shift;
     my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
@@ -153,6 +244,59 @@ sub get_is_domain_auto_renew_by_name {
     catch {
         croak $_;
     };
+}
+
+sub enable_domain_auto_renew_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_auto_renew({
+        domain_name   => $domain_name,
+        is_auto_renew => 1,
+    });
+}
+
+sub disable_domain_auto_renew_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_auto_renew({
+        domain_name   => $domain_name,
+        is_auto_renew => 0,
+    });
+}
+
+sub _set_domain_auto_renew {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name           => { isa => DomainName },
+        is_auto_renew         => { isa => Bool },
+        privacy_is_auto_renew => { isa => Bool, optional => 1 },
+    );
+
+    return try {
+        my $response = $self->submit({
+            method => 'SetRenew',
+            params => {
+                Domain    => $args{domain_name},
+                RenewFlag => ( $args{is_auto_renew} ? 1 : 0 ),
+                defined $args{privacy_is_auto_renew} ? ( WPPSRenew => ( $args{privacy_is_auto_renew} ? 1 : 0 ) ) : ( ),
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+        }
+
+        return $self->get_domain_by_name( $args{domain_name} );
+    }
+    catch {
+        croak "$_";
+    };
+
 }
 
 sub get_domain_created_date_by_name {
@@ -188,38 +332,6 @@ sub get_domain_created_date_by_name {
 
 }
 
-# This will get uncommented when we actually implement this method
-#sub enable_domain_privacy_for_domain_by_name {
-#    my $self = shift;
-#    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
-#
-#    return try {
-#        my $response = $self->submit({
-#            method => 'EnableServices',
-#            params => {
-#                Domain  => $domain_name,
-#                Service => 'WPPS',
-#            }
-#        });
-#
-#        use Data::Dumper;
-#        print STDERR Dumper( $response ) . "\n";
-#
-#        if( $response->{ErrCount} > 0 ) {
-#            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
-#                croak 'Domain not found in your account';
-#            }
-#
-#            croak 'Unknown error';
-#        }
-#
-#        return $self->get_domain_by_name( $domain_name );
-#    }
-#    catch {
-#        croak $_;
-#    };
-#}
-
 1;
 
 __END__
@@ -240,6 +352,7 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     # Get a fully formed WWW::eNom::Domain object for a domain
     my $domain = $api->get_domain_by_name( 'drzigman.com' );
 
+
     # Check if a domain is locked
     if( $api->get_is_domain_locked_by_name( 'drzigman.com' ) ) {
         print "Domain is Locked!\n";
@@ -248,10 +361,24 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
         print "Domain is NOT Locked!\n";
     }
 
+    # Lock Domain
+    my $updated_domain = $api->enable_domain_lock_by_name( 'drzigman.com' );
+
+    # Unlock Domain
+    my $updated_domain = $api->disable_domain_lock_by_name( 'drzigman.com' );
+
+
     # Get domain authoritative nameservers
     for my $ns ( $api->get_domain_name_servers_by_name( 'drzigman.com' ) ) {
         print "Nameserver: $ns\n";
     }
+
+    # Update Domain Nameservers
+    my $updated_domain = $api->update_nameservers_for_domain_name({
+        domain_name => 'drzigman.com',
+        ns          => [ 'ns1.enom.org', 'ns2.enom.org' ],
+    });
+
 
     # Get auto renew status
     if( $api->get_is_domain_auto_renew_by_name( 'drzigman.com' ) ) {
@@ -260,6 +387,13 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     else {
         print "Domain will NOT be renewed automatically!\n";
     }
+
+    # Enable domain auto renew
+    my $updated_domain = $api->enable_domain_auto_renew_by_name( 'drzigman.com' );
+
+    # Disable domain auto renew
+    my $updated_domain = $api->disable_domain_auto_renew_by_name( 'drzigman.com' );
+
 
     # Get Created Date
     my $created_date = $api->get_domain_created_date_by_name( 'drzigman.com' );
@@ -330,6 +464,22 @@ Abstraction of the L<GetRegLock|https://www.enom.com/api/API%20topics/api_GetReg
 
 This method will croak if the domain is owned by someone else or if it is not registered.
 
+=head2 enable_domain_lock_by_name
+
+    my $updated_domain = $api->enable_domain_lock_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRegLock|https://www.enom.com/api/API%20topics/api_SetRegLock.htm> eNom API Call.  Given a FQDN, enables the registrar lock for the provided domain.  If the domain is already locked this is effectively a NO OP.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 disable_domain_lock_by_name
+
+    my $updated_domain = $api->disable_domain_lock_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRegLock|https://www.enom.com/api/API%20topics/api_SetRegLock.htm> eNom API Call.  Given a FQDN, disabled the registrar lock for the provided domain.  If the domain is already unlocked this is effectively a NO OP.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
 =head2 get_domain_name_servers_by_name
 
     for my $ns ( $api->get_domain_name_servers_by_name( 'drzigman.com' ) ) {
@@ -339,6 +489,17 @@ This method will croak if the domain is owned by someone else or if it is not re
 Abstraction of the L<GetDNS|https://www.enom.com/api/API%20topics/api_GetDNS.htm> eNom API Call.  Given a FQDN, returns an ArrayRef of FQDNs that are the authoritative name servers for the specified FQDN.
 
 This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 update_nameservers_for_domain_name
+
+    my $updated_domain = $api->update_nameservers_for_domain_name({
+        domain_name => 'drzigman.com',
+        ns          => [ 'ns1.enom.org', 'ns2.enom.org' ],
+    });
+
+Abstraction of the L<ModifyNS|https://www.enom.com/api/API%20topics/api_ModifyNS.htm> eNom API Call.  Given a FQDN and an ArrayRef of FQDNs to use as nameservers, updates the nameservers and returns an updated version L<WWW::eNom::Domain>.
+
+This method will croak if the domain is owned by someone else or if it is not registered.  It will also croak if you provide an invalid nameserver (such as ns1.some-domain-that-does-not-really-exist.com).
 
 =head2 get_is_domain_auto_renew_by_name
 
@@ -350,6 +511,22 @@ This method will croak if the domain is owned by someone else or if it is not re
     }
 
 Abstraction of the L<GetRenew|https://www.enom.com/api/API%20topics/api_GetRenew.htm> eNom API Call.  Given a FQDN, returns a truthy value if auto renew is enabled for this domain (you want eNom to automatically renew this) or a falsey value if auto renew is not enabled for this domain.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 enable_domain_auto_renew_by_name
+
+    my $updated_domain = $api->enable_domain_auto_renew_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRenew|https://www.enom.com/api/API%20topics/api_SetRenew.htm> eNom API Call.  Given a FQDN, enables auto renew for the provided domain.  If the domain is already set to auto renew this is effectively a NO OP.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 disable_domain_auto_renew_by_name
+
+    my $updated_domain = $api->disable_domain_auto_renew_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRenew|https://www.enom.com/api/API%20topics/api_SetRenew.htm> eNom API Call.  Given a FQDN, disables auto renew for the provided domain.  If the domain is already set not to auto renew this is effectively a NO OP.
 
 This method will croak if the domain is owned by someone else or if it is not registered.
 

@@ -11,8 +11,23 @@ use MooseX::Params::Validate;
 use WWW::eNom::Types qw( EmailAddress PhoneNumber Str );
 use WWW::eNom::Contact;
 
+use Readonly;
+Readonly our $DEFAULT_CONTACT => WWW::eNom::Contact->new(
+    first_name   => 'Ada',
+    last_name    => 'Byron',
+    address1     => 'University of London',
+    city         => 'London',
+    country      => 'GB',
+    zipcode      => 'WC1E 7HU',
+    email        => 'ada-' . random_string('ccnnccnnccnnccnnccnnccnn') . '@testing.com',
+    phone_number => '18005551212',
+);
+
 use Exporter 'import';
-our @EXPORT_OK = qw( create_contact );
+our @EXPORT_OK = qw(
+    create_contact
+    $DEFAULT_CONTACT
+);
 
 sub create_contact {
     my ( %args ) = validated_hash(
