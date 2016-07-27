@@ -11,16 +11,15 @@ use FindBin;
 use lib "$FindBin::Bin/../../../lib";
 use Test::WWW::eNom qw( create_api );
 use Test::WWW::eNom::Contact qw( create_contact );
-use Test::WWW::eNom::Domain qw( create_domain );
+use Test::WWW::eNom::Domain qw( create_domain $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN );
 
 subtest 'All Contacts At Once' => sub {
     subtest 'Update Contacts for Unregistered Domain' => sub {
         my $api         = create_api();
-        my $domain_name = 'NOT-REGISTERED-' . random_string('ccnnccnnccnnccnnccnnccnn') . '.com';
 
         throws_ok {
             $api->update_contacts_for_domain_name(
-                domain_name        => $domain_name,
+                domain_name        => $UNREGISTERED_DOMAIN->name,
                 registrant_contact => create_contact(),
                 admin_contact      => create_contact(),
                 technical_contact  => create_contact(),
@@ -31,11 +30,10 @@ subtest 'All Contacts At Once' => sub {
 
     subtest 'Update Contacts for Domain Registered To Someone Else' => sub {
         my $api         = create_api();
-        my $domain_name = 'enom.com';
 
         throws_ok {
             $api->update_contacts_for_domain_name(
-                domain_name        => $domain_name,
+                domain_name        => $NOT_MY_DOMAIN->name,
                 registrant_contact => create_contact(),
                 admin_contact      => create_contact(),
                 technical_contact  => create_contact(),
@@ -85,11 +83,10 @@ subtest 'Contacts One At A Time' => sub {
         subtest $contact_type => sub {
             subtest 'Update Contacts One At A Time' => sub {
                 my $api         = create_api();
-                my $domain_name = 'NOT-REGISTERED-' . random_string('ccnnccnnccnnccnnccnnccnn') . '.com';
 
                 throws_ok {
                     $api->update_contacts_for_domain_name(
-                        domain_name   => $domain_name,
+                        domain_name   => $UNREGISTERED_DOMAIN->name,
                         $contact_type => create_contact(),
                     );
                 } qr/Domain not found in your account/, 'Throws on unregistered domain';
@@ -97,11 +94,10 @@ subtest 'Contacts One At A Time' => sub {
 
             subtest 'Update Contacts for Domain Registered To Someone Else' => sub {
                 my $api         = create_api();
-                my $domain_name = 'enom.com';
 
                 throws_ok {
                     $api->update_contacts_for_domain_name(
-                        domain_name   => $domain_name,
+                        domain_name   => $NOT_MY_DOMAIN->name,
                         $contact_type => create_contact(),
                     );
                 } qr/Domain not found in your account/, 'Throws on unregistered domain';

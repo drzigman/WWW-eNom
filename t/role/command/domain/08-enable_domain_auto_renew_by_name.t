@@ -10,23 +10,21 @@ use String::Random qw( random_string );
 use FindBin;
 use lib "$FindBin::Bin/../../../lib";
 use Test::WWW::eNom qw( create_api );
-use Test::WWW::eNom::Domain qw( create_domain );
+use Test::WWW::eNom::Domain qw( create_domain $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN );
 
 subtest 'Enable Auto Renew On Unregistered Domain' => sub {
-    my $api         = create_api();
-    my $domain_name = 'NOT-REGISTERED-' . random_string('ccnnccnnccnnccnnccnnccnnccnn') . '.com';
+    my $api = create_api();
 
     throws_ok {
-        $api->enable_domain_auto_renew_by_name( $domain_name );
+        $api->enable_domain_auto_renew_by_name( $UNREGISTERED_DOMAIN->name );
     } qr/Domain not found in your account/, 'Throws on unregistered domain';
 };
 
 subtest 'Enable Auto Renew On Domain Registered To Someone Else' => sub {
-    my $api         = create_api();
-    my $domain_name = 'enom.com';
+    my $api = create_api();
 
     throws_ok {
-        $api->enable_domain_auto_renew_by_name( $domain_name );
+        $api->enable_domain_auto_renew_by_name( $NOT_MY_DOMAIN->name );
     } qr/Domain not found in your account/, 'Throws on domain registered to someone else';
 };
 
