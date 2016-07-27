@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( Bool DomainName );
+use WWW::eNom::Types qw( Bool DomainName DomainNames );
 
 use WWW::eNom::Domain;
 
@@ -176,6 +176,43 @@ sub get_domain_name_servers_by_name {
     catch {
         croak $_;
     };
+}
+
+sub update_nameservers_for_domain_name {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name => { isa => DomainName },
+        ns          => { isa => DomainNames },
+    );
+
+    try {
+        my $response = $self->submit({
+            method => 'ModifyNS',
+            params => {
+                Domain => $args{domain_name},
+                map { 'NS' . ( $_ + 1 ) => $args{ns}->[ $_ ] } 0 .. ( scalar (@{ $args{ns} }) - 1)
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            if( grep { $_ =~ m/could not be registered/ } @{ $response->{errors} } ) {
+                croak 'Invalid Nameserver provided';
+            }
+
+            croak 'Unknown error';
+        }
+    }
+    catch {
+        croak $_;
+    };
+
+
+    return $self->get_domain_by_name( $args{domain_name} );
 }
 
 sub get_is_domain_auto_renew_by_name {
@@ -368,6 +405,12 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
         print "Nameserver: $ns\n";
     }
 
+    # Update Domain Nameservers
+    my $updated_domain = $api->update_nameservers_for_domain_name({
+        domain_name => 'drzigman.com',
+        ns          => [ 'ns1.enom.org', 'ns2.enom.org' ],
+    });
+
 
     # Get auto renew status
     if( $api->get_is_domain_auto_renew_by_name( 'drzigman.com' ) ) {
@@ -382,6 +425,7 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
 
     # Disable domain auto renew
     my $updated_domain = $api->disable_domain_auto_renew_by_name( 'drzigman.com' );
+
 
     # Get Created Date
     my $created_date = $api->get_domain_created_date_by_name( 'drzigman.com' );
@@ -477,6 +521,17 @@ This method will croak if the domain is owned by someone else or if it is not re
 Abstraction of the L<GetDNS|https://www.enom.com/api/API%20topics/api_GetDNS.htm> eNom API Call.  Given a FQDN, returns an ArrayRef of FQDNs that are the authoritative name servers for the specified FQDN.
 
 This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 update_nameservers_for_domain_name
+
+    my $updated_domain = $api->update_nameservers_for_domain_name({
+        domain_name => 'drzigman.com',
+        ns          => [ 'ns1.enom.org', 'ns2.enom.org' ],
+    });
+
+Abstraction of the L<ModifyNS|https://www.enom.com/api/API%20topics/api_ModifyNS.htm> eNom API Call.  Given a FQDN and an ArrayRef of FQDNs to use as nameservers, updates the nameservers and returns an updated version L<WWW::eNom::Domain>.
+
+This method will croak if the domain is owned by someone else or if it is not registered.  It will also croak if you provide an invalid nameserver (such as ns1.some-domain-that-does-not-really-exist.com).
 
 =head2 get_is_domain_auto_renew_by_name
 

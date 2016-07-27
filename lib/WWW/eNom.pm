@@ -149,6 +149,8 @@ Domain retrieval and management.
 
 =item L<get_domain_name_servers_by_name|WWW::eNom::Role::Command::Domain/get_domain_name_servers_by_name>
 
+=item L<update_nameservers_for_domain_name|WWW::eNom::Role::Command::Domain/update_nameservers_for_domain_name>
+
 =item L<get_is_domain_auto_renew_by_name|WWW::eNom::Role::Command::Domain/get_is_domain_auto_renew_by_name>
 
 =item L<enable_domain_auto_renew_by_name|WWW::eNom::Role::Command::Domain/enable_domain_auto_renew_by_name>

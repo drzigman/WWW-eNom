@@ -25,6 +25,7 @@ subtest "$ROLE has the correct methods" => sub {
     has_method_ok( $ROLE, 'disable_domain_lock_by_name' );
 
     has_method_ok( $ROLE, 'get_domain_name_servers_by_name' );
+    has_method_ok( $ROLE, 'update_nameservers_for_domain_name' );
 
     has_method_ok( $ROLE, 'get_is_domain_auto_renew_by_name' );
     has_method_ok( $ROLE, 'enable_domain_auto_renew_by_name' );
