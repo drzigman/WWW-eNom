@@ -209,6 +209,57 @@ sub get_is_domain_auto_renew_by_name {
     };
 }
 
+sub enable_domain_auto_renew_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_auto_renew({
+        domain_name   => $domain_name,
+        is_auto_renew => 1,
+    });
+}
+
+sub disable_domain_auto_renew_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return $self->_set_domain_auto_renew({
+        domain_name   => $domain_name,
+        is_auto_renew => 0,
+    });
+}
+
+sub _set_domain_auto_renew {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name   => { isa => DomainName },
+        is_auto_renew => { isa => Bool },
+    );
+
+    return try {
+        my $response = $self->submit({
+            method => 'SetRenew',
+            params => {
+                Domain    => $args{domain_name},
+                RenewFlag => ( $args{is_auto_renew} ? 1 : 0 ),
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+        }
+
+        return $self->get_domain_by_name( $args{domain_name} );
+    }
+    catch {
+        croak "$_";
+    };
+
+}
+
 sub get_domain_created_date_by_name {
     my $self = shift;
     my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
@@ -315,6 +366,7 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
         print "Nameserver: $ns\n";
     }
 
+
     # Get auto renew status
     if( $api->get_is_domain_auto_renew_by_name( 'drzigman.com' ) ) {
         print "Domain will be auto renewed!\n";
@@ -322,6 +374,12 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     else {
         print "Domain will NOT be renewed automatically!\n";
     }
+
+    # Enable domain auto renew
+    my $updated_domain = $api->enable_domain_auto_renew_by_name( 'drzigman.com' );
+
+    # Disable domain auto renew
+    my $updated_domain = $api->disable_domain_auto_renew_by_name( 'drzigman.com' );
 
     # Get Created Date
     my $created_date = $api->get_domain_created_date_by_name( 'drzigman.com' );
@@ -428,6 +486,22 @@ This method will croak if the domain is owned by someone else or if it is not re
     }
 
 Abstraction of the L<GetRenew|https://www.enom.com/api/API%20topics/api_GetRenew.htm> eNom API Call.  Given a FQDN, returns a truthy value if auto renew is enabled for this domain (you want eNom to automatically renew this) or a falsey value if auto renew is not enabled for this domain.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 enable_domain_auto_renew_by_name
+
+    my $updated_domain = $api->enable_domain_auto_renew_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRenew|https://www.enom.com/api/API%20topics/api_SetRenew.htm> eNom API Call.  Given a FQDN, enables auto renew for the provided domain.  If the domain is already set to auto renew this is effectively a NO OP.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 disable_domain_auto_renew_by_name
+
+    my $updated_domain = $api->disable_domain_auto_renew_by_name( 'drzigman.com' );
+
+Abstraction of the L<SetRenew|https://www.enom.com/api/API%20topics/api_SetRenew.htm> eNom API Call.  Given a FQDN, disables auto renew for the provided domain.  If the domain is already set not to auto renew this is effectively a NO OP.
 
 This method will croak if the domain is owned by someone else or if it is not registered.
 

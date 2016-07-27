@@ -19,11 +19,17 @@ subtest "$ROLE is a well formed role" => sub {
 
 subtest "$ROLE has the correct methods" => sub {
     has_method_ok( $ROLE, 'get_domain_by_name' );
+
     has_method_ok( $ROLE, 'get_is_domain_locked_by_name' );
     has_method_ok( $ROLE, 'enable_domain_lock_by_name' );
     has_method_ok( $ROLE, 'disable_domain_lock_by_name' );
+
     has_method_ok( $ROLE, 'get_domain_name_servers_by_name' );
+
     has_method_ok( $ROLE, 'get_is_domain_auto_renew_by_name' );
+    has_method_ok( $ROLE, 'enable_domain_auto_renew_by_name' );
+    has_method_ok( $ROLE, 'disable_domain_auto_renew_by_name' );
+
     has_method_ok( $ROLE, 'get_domain_created_date_by_name' );
 };
 
