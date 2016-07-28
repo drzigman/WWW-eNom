@@ -185,6 +185,8 @@ Addon products that can be sold along with domains.
 
 =item L<disable_privacy_auto_renew_for_domain|WWW::eNom::Role::Command::Service/disable_privacy_auto_renew_for_domain>
 
+=item L<renew_privacy|WWW::eNom::Role::Command::Service/renew_privacy>
+
 =back
 
 =head1 OBJECTS

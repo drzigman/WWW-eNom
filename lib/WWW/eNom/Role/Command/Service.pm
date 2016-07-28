@@ -261,6 +261,47 @@ sub disable_privacy_auto_renew_for_domain {
     });
 }
 
+sub renew_privacy {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name => { isa => DomainName },
+        years       => { isa => PositiveInt },
+    );
+
+    return try {
+        my $response = $self->submit({
+            method => 'RenewServices',
+            params => {
+                Service   => 'WPPS',
+                Domain    => $args{domain_name},
+                NumYears  => $args{years},
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            if( grep { $_ eq 'Unable to renew ID Protect for this domain.' } @{ $response->{errors} } ) {
+                croak 'Domain does not have privacy';
+            }
+
+            if( grep { $_ =~ qr/The number of years cannot/ } @{ $response->{errors} } ) {
+                croak 'Requested renewal too long';
+            }
+
+            croak 'Unknown error';
+        }
+
+        return $response->{OrderID};
+    }
+    catch {
+        croak $_;
+    };
+}
+
 1;
 
 __END__
@@ -302,6 +343,12 @@ WWW::eNom::Role::Command::Service - Addon Services That Can Be Purchased
 
     # Disable Auto Renew for Domain Privacy
     my $updated_domain = $api->disable_privacy_auto_renew_for_domain( $domain );
+
+    # Renew Domain privacy
+    my $order_id = $api->renew_privacy({
+        domain_name => 'drzigman.com',
+        years       => 1,
+    });
 
 =head1 REQUIRES
 
@@ -401,6 +448,33 @@ B<NOTE> If the specified domain does not have domain privacy this method will cr
 
 Abstraction of the L<SetRenew|https://www.enom.com/api/API%20topics/api_SetRenew.htm> eNom API Call.  Given an instance of L<WWW::eNom::Domain> disables auto renew of domain privacy.  If the domain privacy is already set not to auto renew this method is effectively a NO OP.
 
+If the domain is not registered or is registered to someone else this method will croak.
+
 B<NOTE> If the specified domain does not have domain privacy this method will croak with the message 'Domain does not have privacy'.
+
+=head2 renew_privacy
+
+    my $order_id = $api->renew_privacy({
+        domain_name => 'drzigman.com',
+        years       => 1,
+    });
+
+Abstraction of the L<RenewServices|https://www.enom.com/api/API%20topics/api_RenewServices.htm> eNom API Call.  Given a FQDN and a number of years, renews domain privacy.  Returned is the order id.
+
+There are several reasons this method could croak:
+
+=over 4
+
+=item Requested renewal too long
+
+If you request a renewal longer than 10 years.
+
+=item Domain does not have privacy
+
+If the domain does not have privacy
+
+=back
+
+If the domain is not registered or is registered to someone else this method will croak.
 
 =cut
