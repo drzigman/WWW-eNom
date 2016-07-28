@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( Bool DomainName DomainNames );
+use WWW::eNom::Types qw( Bool DomainName DomainNames PositiveInt );
 
 use WWW::eNom::Domain;
 
@@ -332,6 +332,43 @@ sub get_domain_created_date_by_name {
 
 }
 
+sub renew_domain {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        domain_name => { isa => DomainName },
+        years       => { isa => PositiveInt },
+    );
+
+    return try {
+        my $response = $self->submit({
+            method => 'Extend',
+            params => {
+                Domain    => $args{domain_name},
+                NumYears  => $args{years},
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            if(    ( grep { $_ =~ qr/The number of years cannot/ } @{ $response->{errors} } )
+                || ( grep { $_ =~ qr/cannot be extended/ } @{ $response->{errors} } ) ) {
+                croak 'Requested renewal too long';
+            }
+
+            croak 'Unknown error';
+        }
+
+        return $response->{OrderID};
+    }
+    catch {
+        croak $_;
+    };
+}
+
 1;
 
 __END__
@@ -394,6 +431,11 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     # Disable domain auto renew
     my $updated_domain = $api->disable_domain_auto_renew_by_name( 'drzigman.com' );
 
+    # Renew Domain
+    my $order_id = $api->renew_domain({
+        domain_name => 'drzigman.com',
+        years       => 1,
+    });
 
     # Get Created Date
     my $created_date = $api->get_domain_created_date_by_name( 'drzigman.com' );
@@ -537,6 +579,19 @@ This method will croak if the domain is owned by someone else or if it is not re
     print "This domain was created on: " . $created_date->ymd . "\n";
 
 Abstraction of the L<GetWhoisContact|https://www.enom.com/api/API%20topics/api_GetWhoisContact.htm> eNom API Call.  Given a FQDN, returns a L<DateTime> object representing when this domain registration was created.
+
+This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 renew_domain
+
+    my $order_id = $api->renew_domain({
+        domain_name => 'drzigman.com',
+        years       => 1,
+    });
+
+Abstraction of the L<Extend|https://www.enom.com/api/API%20topics/api_Extend.htm> eNom API Call.  Given a FQDN and the number of years, renews the domain for the requested number of years returning the order_id.
+
+B<NOTE> There is a limit as to how far into the future you can renew a domain (usually it's 10 years but that can vary based on the public suffix and the registry).  In the event you try to renew too far into the future this method will croak with 'Requested renewal too long'
 
 This method will croak if the domain is owned by someone else or if it is not registered.
 

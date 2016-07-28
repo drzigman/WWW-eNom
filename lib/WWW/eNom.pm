@@ -159,6 +159,8 @@ Domain retrieval and management.
 
 =item L<get_domain_created_date_by_name|WWW::eNom::Role::Command::Domain/get_domain_created_date_by_name>
 
+=item L<renew_domain|WWW::eNom::Role::Command::Domain/renew_privacy>
+
 =back
 
 =head2 L<Service|WWW::eNom::Role::Command::Service>
