@@ -28,6 +28,7 @@ subtest "$ROLE has the correct methods" => sub {
     has_method_ok( $ROLE, 'get_privacy_expiration_date_by_name' );
     has_method_ok( $ROLE, 'enable_privacy_auto_renew_for_domain' );
     has_method_ok( $ROLE, 'disable_privacy_auto_renew_for_domain' );
+    has_method_ok( $ROLE, 'renew_privacy' );
 };
 
 done_testing;

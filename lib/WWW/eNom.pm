@@ -159,6 +159,8 @@ Domain retrieval and management.
 
 =item L<get_domain_created_date_by_name|WWW::eNom::Role::Command::Domain/get_domain_created_date_by_name>
 
+=item L<renew_domain|WWW::eNom::Role::Command::Domain/renew_domain>
+
 =back
 
 =head2 L<Service|WWW::eNom::Role::Command::Service>
@@ -184,6 +186,8 @@ Addon products that can be sold along with domains.
 =item L<enable_privacy_auto_renew_for_domain|WWW::eNom::Role::Command::Service/enable_privacy_auto_renew_for_domain>
 
 =item L<disable_privacy_auto_renew_for_domain|WWW::eNom::Role::Command::Service/disable_privacy_auto_renew_for_domain>
+
+=item L<renew_privacy|WWW::eNom::Role::Command::Service/renew_privacy>
 
 =back
 

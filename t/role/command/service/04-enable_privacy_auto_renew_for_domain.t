@@ -25,7 +25,7 @@ subtest 'Enable Domain Privacy Auto Renew On Domain Registered To Someone Else' 
 
     throws_ok {
         $api->enable_privacy_auto_renew_for_domain( $NOT_MY_DOMAIN );
-    } qr/Domain not found in your account/, 'Throws on unregistered domain';
+    } qr/Domain not found in your account/, 'Throws on domain registered to someone else';
 };
 
 subtest 'Enable Domain Privacy Auto Renew On Domain Without Privacy' => sub {

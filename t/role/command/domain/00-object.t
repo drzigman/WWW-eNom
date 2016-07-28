@@ -32,6 +32,8 @@ subtest "$ROLE has the correct methods" => sub {
     has_method_ok( $ROLE, 'disable_domain_auto_renew_by_name' );
 
     has_method_ok( $ROLE, 'get_domain_created_date_by_name' );
+
+    has_method_ok( $ROLE, 'renew_domain' );
 };
 
 done_testing;
