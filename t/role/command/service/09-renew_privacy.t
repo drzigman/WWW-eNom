@@ -49,7 +49,7 @@ subtest 'Renew Domain Privacy - Too Long of a Renewal' => sub {
     my $api    = create_api();
     my $domain = create_domain(
         is_private => 1,
-        years      => 7,
+        years      => 1,
     );
 
     subtest '20 Years at Once' => sub {

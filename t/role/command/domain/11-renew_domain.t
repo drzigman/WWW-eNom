@@ -37,7 +37,7 @@ subtest 'Renew Domain - Too Long of a Renewal' => sub {
     my $api    = create_api();
     my $domain = create_domain(
         is_private => 1,
-        years      => 7,
+        years      => 3,
     );
 
     subtest '20 Years at Once' => sub {
@@ -49,11 +49,11 @@ subtest 'Renew Domain - Too Long of a Renewal' => sub {
         } qr/Requested renewal too long/, 'Throws on too long of renewal';
     };
 
-    subtest '7 + 7' => sub {
+    subtest '3 + 8' => sub {
         throws_ok {
             $api->renew_domain({
                 domain_name => $domain->name,
-                years       => 7,
+                years       => 8,
             });
         } qr/Requested renewal too long/, 'Throws on too long of renewal';
     };
