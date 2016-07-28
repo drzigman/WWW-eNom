@@ -131,6 +131,8 @@ New Domain Registration.
 
 =item L<register_domain|WWW::eNom::Role::Command::Domain::Registration/register_domain>
 
+=item L<delete_domain_registration_by_name|WWW::eNom::Role::Command::Domain::Registration/delete_domain_registration_by_name>
+
 =back
 
 =head2 L<Domain|WWW::eNom::Role::Command::Domain>
