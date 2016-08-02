@@ -133,6 +133,22 @@ New Domain Registration.
 
 =back
 
+=head2 L<Domain Transfer|WWW::eNom::Role::Command::Domain::Transfer>
+
+New Domain Transfers.
+
+=over 4
+
+=item L<transfer_domain|WWW::eNom::Role::Command::Domain::Transfer/transfer_domain>
+
+=item L<get_transfer_by_order_id|WWW::eNom::Role::Command::Domain::Transfer/get_transfer_by_order_id>
+
+=item L<get_transfer_by_name|WWW::eNom::Role::Command::Domain::Transfer/get_transfer_by_name>
+
+=item L<get_transfer_order_id_from_parent_order_id|WWW::eNom::eNom::Role::Command::Domain::Transfer/get_transfer_order_id_from_parent_order_id>
+
+=back
+
 =head2 L<Domain|WWW::eNom::Role::Command::Domain>
 
 Domain retrieval and management.
@@ -171,6 +187,8 @@ Addon products that can be sold along with domains.
 
 =over 4
 
+=item L<get_domain_privacy_wholesale_price|WWW::eNom::Role::Command::Service/get_domain_privacy_wholesale_price>
+
 =item L<purchase_domain_privacy_for_domain|WWW::eNom::Role::Command::Service/purchase_domain_privacy_for_domain>
 
 =item L<get_is_privacy_purchased_by_name|WWW::eNom::Role::Command::Service/get_is_privacy_purchased_by_name>
@@ -207,9 +225,17 @@ WHOIS data contacts.  Typically (with few exceptions) domains contain a Registra
 
 A registered domain and all of the domain's related information.
 
+=head2 L<WWW::eNom::DomainTransfer>
+
+An in progress domain transfer and all of it's related information.
+
 =head2 L<WWW::eNom::DomainRequest::Registration>
 
 Request to register a domain.
+
+=head2 L<WWW::eNom::DomainRequest::Transfer>
+
+Request to transfer a domain.
 
 =head1 WITH
 

@@ -27,6 +27,7 @@ use MooseX::Types -declare => [qw(
     HTTPTiny
     NumberPhone
     ResponseType
+    TransferVerificationMethod
     URI
 
     Contact
@@ -34,6 +35,7 @@ use MooseX::Types -declare => [qw(
     DomainAvailability
     DomainAvailabilities
     DomainRegistration
+    DomainTransfer
     PhoneNumber
 )];
 
@@ -80,11 +82,19 @@ class_type NumberPhone, { class => 'Number::Phone' };
 class_type URI,         { class => 'URI' };
 coerce URI, from Str, via { URI->new( $_ ) };
 
+enum TransferVerificationMethod, [qw( Fax Autoverification )];
+
 class_type Contact,            { class => 'WWW::eNom::Contact' };
 class_type Domain,             { class => 'WWW::eNom::Domain' };
 class_type DomainAvailability, { class => 'WWW::eNom::DomainAvailability' };
 subtype DomainAvailabilities, as ArrayRef[DomainAvailability];
+
 class_type DomainRegistration, { class => 'WWW::eNom::DomainRequest::Registration' };
+coerce DomainRegistration, from HashRef, via { WWW::eNom::DomainRequest::Registration->new( $_ ) };
+
+class_type DomainTransfer,     { class => 'WWW::eNom::DomainRequest::Transfer' };
+coerce DomainTransfer, from HashRef, via { WWW::eNom::DomainRequest::Transfer->new( $_ ) };
+
 class_type PhoneNumber,        { class => 'WWW::eNom::PhoneNumber' };
 coerce PhoneNumber, from Str,
     via { WWW::eNom::PhoneNumber->new( $_ ) };

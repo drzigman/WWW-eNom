@@ -12,6 +12,8 @@ use lib "$FindBin::Bin/../../../../lib";
 use Test::WWW::eNom qw( create_api );
 use Test::WWW::eNom::Contact qw( create_contact );
 
+use WWW::eNom::DomainRequest::Registration;
+
 subtest 'Register Available Domain - No Privacy, Locking, Auto Renew' => sub {
     my $eNom = create_api();
 

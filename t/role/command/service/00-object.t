@@ -20,6 +20,7 @@ subtest "$ROLE is a well formed role" => sub {
 };
 
 subtest "$ROLE has the correct methods" => sub {
+    has_method_ok( $ROLE, 'get_domain_privacy_wholesale_price' );
     has_method_ok( $ROLE, 'purchase_domain_privacy_for_domain' );
     has_method_ok( $ROLE, 'get_is_privacy_purchased_by_name' );
     has_method_ok( $ROLE, 'enable_privacy_by_name' );
