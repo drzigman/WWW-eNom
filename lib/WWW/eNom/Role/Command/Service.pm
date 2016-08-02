@@ -9,6 +9,7 @@ use MooseX::Params::Validate;
 use WWW::eNom::Types qw( Bool Domain DomainName PositiveInt );
 
 use DateTime::Format::DateParse;
+use Math::Currency;
 use POSIX qw( ceil );
 
 use Try::Tiny;
@@ -18,6 +19,32 @@ requires 'submit', '_set_domain_auto_renew', 'get_domain_by_name';
 
 # VERSION
 # ABSTRACT: Addon Services That Can Be Purchased
+
+sub get_domain_privacy_wholesale_price {
+    my $self = shift;
+
+    return try {
+        my $response = $self->submit({
+            method => 'PE_GetProductPrice',
+            params => {
+                ProductType => 72,
+            },
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            croak 'Unknown error';
+        }
+
+        if( !exists $response->{productprice}{price} ) {
+            croak 'Response did not contain price info';
+        }
+
+        return Math::Currency->new( $response->{productprice}{price} );
+    }
+    catch {
+        croak $_;
+    };
+}
 
 sub purchase_domain_privacy_for_domain {
     my $self = shift;
@@ -318,6 +345,9 @@ WWW::eNom::Role::Command::Service - Addon Services That Can Be Purchased
 
     my $api = WWW::eNom->new( ... );
 
+    # Get wholesale price for Domain privacy
+    my $domain_privacy_wholesale_price = $api->get_domain_privacy_wholesale_price();
+
     # Purchase Domain Privacy
     my $order_id = $api->purchase_domain_privacy_for_domain( 'drzigman.com' );
 
@@ -363,6 +393,14 @@ WWW::eNom::Role::Command::Service - Addon Services That Can Be Purchased
 Implements addon service related API calls (such as L<WPPS Service|https://www.enom.com/api/Value%20Added%20Topics/ID%20Protect.htm>, what eNom calls Privacy Protection).
 
 =head1 METHODS
+
+=head2 get_domain_privacy_wholesale_price
+
+    use Math::Currency;
+
+    my $domain_privacy_wholesale_price = $api->get_domain_privacy_wholesale_price();
+
+Returns the wholesale price per year (the price you as the reseller pay, not what you want to charge your customers) for domain privacy as a Math::Currency object.
 
 =head2 purchase_domain_privacy_for_domain
 

@@ -8,7 +8,7 @@ use Test::Exception;
 use MooseX::Params::Validate;
 use String::Random qw( random_string );
 
-use WWW::eNom::Types qw( Bool Contact DomainName DomainNames PositiveInt );
+use WWW::eNom::Types qw( Bool Contact DomainName DomainNames PositiveInt Str TransferVerificationMethod );
 
 use FindBin;
 use lib "$FindBin::Bin/../../../../lib";
@@ -16,7 +16,9 @@ use Test::WWW::eNom qw( create_api );
 use Test::WWW::eNom::Contact qw( create_contact $DEFAULT_CONTACT );
 
 use WWW::eNom::Domain;
+use WWW::eNom::DomainTransfer;
 use WWW::eNom::DomainRequest::Registration;
+use WWW::eNom::DomainRequest::Transfer;
 
 use DateTime;
 
@@ -57,7 +59,7 @@ Readonly our $NOT_MY_DOMAIN => WWW::eNom::Domain->new(
 
 use Exporter 'import';
 our @EXPORT_OK = qw(
-    create_domain
+    create_domain create_transfer
     $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN
 );
 
@@ -104,6 +106,53 @@ sub create_domain {
 
     return $domain;
 
+}
+
+sub create_transfer {
+    my ( %args ) = validated_hash(
+        \@_,
+        name                  => { isa => DomainName,  optional => 1 },
+        verification_method   => { isa => TransferVerificationMethod, optional => 1 },
+        is_private            => { isa => Bool,        optional => 1 },
+        is_locked             => { isa => Bool,        optional => 1 },
+        is_auto_renew         => { isa => Bool,        optional => 1 },
+        epp_key               => { isa => Str,         optional => 1 },
+        use_existing_contacts => { isa => Bool,        optional => 1 },
+        registrant_contact    => { isa => Contact,     optional => 1 },
+        admin_contact         => { isa => Contact,     optional => 1 },
+        technical_contact     => { isa => Contact,     optional => 1 },
+        billing_contact       => { isa => Contact,     optional => 1 },
+    );
+
+
+    $args{name}    //= 'test-' . random_string('nnccnnccnnccnnccnnccnncc') . '.com';
+    $args{epp_key} //= '12345';
+
+    if( !exists $args{use_existing_contacts} ) {
+        $args{registrant_contact} //= create_contact();
+        $args{admin_contact}      //= create_contact();
+        $args{technical_contact}  //= create_contact();
+        $args{billing_contact}    //= create_contact();
+    }
+
+    my $api = create_api();
+
+    my $transfer;
+    subtest 'Create Transfer' => sub {
+        my $request;
+        lives_ok {
+            $request = WWW::eNom::DomainRequest::Transfer->new( %args );
+        } 'Lives through creating request object';
+
+        lives_ok {
+            $transfer = $api->transfer_domain( request => $request );
+        } 'Lives through domain transfer';
+
+        note( 'Transfer Order ID: ' . $transfer->order_id );
+        note( 'Transfer Domain Name: ' . $transfer->name );
+    };
+
+    return $transfer;
 }
 
 1;
