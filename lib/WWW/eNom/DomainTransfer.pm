@@ -179,7 +179,7 @@ Represents L<eNom|https://www.enom.com> domain transfer that is in progress.
 
 The order id for this specific domain transfer attempt with L<eNom|https://www.enom.com>.
 
-eNom is a bit odd with how it handles order_id.  The purchase of a transfer will have a parent_order_id (for the entire order) as well as an order id for this specific domain transfer attempt (what this module calls the order_id).  If a domain transfer attempt fails for any reason (such as a bad EPP Key) then when you resubmit the domain transfer a new order_id will be created to describe the new domain transer attempt.
+eNom is a bit odd with how it handles order_id.  The purchase of a transfer will have a parent_order_id (for the entire order) as well as an order id for this specific domain transfer attempt (what this module calls the order_id).  If a domain transfer attempt fails for any reason (such as a bad EPP Key) then when you resubmit the domain transfer a new order_id will be created to describe the new domain transfer attempt.
 
 =head2 B<name>
 
@@ -211,19 +211,19 @@ A L<WWW::eNom::Contact> for the Registrant Contact, predicate of has_registrant_
 
 This will not be populated if L<use_existing_contacts> is true unless the L<WWW::eNom::DomainRequest::Transfer/verification_method> used when the transfer was originally requested was Fax.
 
-B<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned doesn't mean there isn't any data, it just might not be available.
+B<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned does not mean there is not any data, it just might not be available.
 
 =head2 admin_contact
 
 A L<WWW::eNom::Contact> for the Admin Contact, predicate of has_admin_contact.
 
-B<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned doesn't mean there isn't any data, it just might not be available.
+B<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned does not mean there is not any data, it just might not be available.
 
 =head2 technical_contact
 
 A L<WWW::eNom::Contact> for the Technical Contact, predicate of has_technical_contact.
 
-B<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned doesn't mean there isn't any data, it just might not be available.
+B<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned does not mean there is not any data, it just might not be available.
 
 =head2 billing_contact
 
@@ -231,7 +231,7 @@ A L<WWW::eNom::Contact> for the Billing Contact, predicate of has_billing_contac
 
 NOTE> L<eNom|https://www.eNom.com> actually calls this the AuxBilling> contact since the primary billing contact is the reseller's information.
 
-<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned doesn't mean there isn't any data, it just might not be available.
+<NOTE> based on the stage of the transfer, L<eNom|https://www.enom.com> may or may not have contact information for this domain transfer.  Just because nothing was returned does not mean there is not any data, it just might not be available.
 
 =head1 METHODS
 
@@ -248,4 +248,4 @@ NOTE> L<eNom|https://www.eNom.com> actually calls this the AuxBilling> contact s
         transfer_detail => $response->{transferorderdetail}
     );
 
-Creates an instance of $self from eNom's reponse to L<TP_GetOrderDetail|https://www.enom.com/api/API%20topics/api_TP_GetOrderDetail.htm>.
+Creates an instance of $self from eNom's response to L<TP_GetOrderDetail|https://www.enom.com/api/API%20topics/api_TP_GetOrderDetail.htm>.

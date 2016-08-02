@@ -139,11 +139,11 @@ New Domain Transfers.
 
 =over 4
 
-=item L<transfer_domain|WWW::eNom::eNom::Role::Command::Domain::Transfer/transfer_domain>
+=item L<transfer_domain|WWW::eNom::Role::Command::Domain::Transfer/transfer_domain>
 
-=item L<get_transfer_by_order_id|WWW::eNom::eNom::Role::Command::Domain::Transfer/get_transfer_by_order_id>
+=item L<get_transfer_by_order_id|WWW::eNom::Role::Command::Domain::Transfer/get_transfer_by_order_id>
 
-=item L<get_transfer_by_name|WWW::eNom::eNom::Role::Command::Domain::Transfer/get_transfer_by_name>
+=item L<get_transfer_by_name|WWW::eNom::Role::Command::Domain::Transfer/get_transfer_by_name>
 
 =item L<get_transfer_order_id_from_parent_order_id|WWW::eNom::eNom::Role::Command::Domain::Transfer/get_transfer_order_id_from_parent_order_id>
 

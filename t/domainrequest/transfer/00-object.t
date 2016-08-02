@@ -6,10 +6,10 @@ use warnings;
 use Test::More;
 use Test::Moose::More;
 
-use WWW::eNom::Role::Command::Domain::Transfer;
+use WWW::eNom::DomainRequest::Transfer;
 
 use Readonly;
-Readonly my $CLASS => 'WWW::eNom::Role::Command::Domain::Transfer';
+Readonly my $CLASS => 'WWW::eNom::DomainRequest::Transfer';
 
 subtest "$CLASS is a well formed object" => sub {
     meta_ok( $CLASS );

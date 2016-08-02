@@ -1,5 +1,11 @@
 #!/usr/bin/env perl
 
+################################################################################
+# NOTE - This filename does not match the method (unlike all other test files) #
+# on purpose.  This is because a length of 40 characters in a file name is     #
+# too long for VMS Systems                                                     #
+################################################################################
+
 use strict;
 use warnings;
 

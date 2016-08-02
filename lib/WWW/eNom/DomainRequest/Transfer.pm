@@ -181,7 +181,7 @@ WWW::eNom::DomainRequest::Transfer - Domain Transfer Request
 
 =head1 DESCRIPTION
 
-WWW::eNom::DomainRequest::Transfer is a representation of all the data needed in order to complate a domain transfer.  It is used when requesting a domain transfer to L<eNom|https://www.enom.com>.
+WWW::eNom::DomainRequest::Transfer is a representation of all the data needed in order to complete a domain transfer.  It is used when requesting a domain transfer to L<eNom|https://www.enom.com>.
 
 =head1 ATTRIBUTES
 
@@ -221,7 +221,7 @@ Boolean that defaults to false.  If true, this domain will be automatically rene
 
 =head2 B<epp_key>
 
-The EPP Key (sometimes called Auth Code or another registrar specific name) that allows this domain to be transfered.  This must be provided.
+The EPP Key (sometimes called Auth Code or another registrar specific name) that allows this domain to be transferred.  This must be provided.
 
 B<NOTE> If the epp_key provided is incorrect, L<eNom|https://www.enom.com> will cancel the transfer order and you'll have to submit a new one.
 
