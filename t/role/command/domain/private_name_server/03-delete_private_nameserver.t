@@ -36,7 +36,7 @@ subtest 'Delete Private Nameserver On Domain Registered To Someone Else' => sub 
 };
 
 subtest 'Delete Private Nameserver That Does Not Exist' => sub {
-    my $api = create_api();
+    my $api    = create_api();
     my $domain = create_domain();
 
     throws_ok {
@@ -48,7 +48,7 @@ subtest 'Delete Private Nameserver That Does Not Exist' => sub {
 };
 
 subtest 'Delete Private Nameserver - No Other Private Nameservers' => sub {
-    my $api = create_api();
+    my $api    = create_api();
     my $domain = create_domain();
 
     my $private_nameserver = WWW::eNom::PrivateNameServer->new(
@@ -63,6 +63,13 @@ subtest 'Delete Private Nameserver - No Other Private Nameservers' => sub {
         );
     } 'Lives through creation of private nameserver';
 
+    lives_ok {
+        $domain = $api->update_nameservers_for_domain_name({
+            domain_name => $domain->name,
+            ns          => [ $private_nameserver->name ],
+        });
+    } 'Lives through making the private nameserver the only one on the domain';
+
     throws_ok {
         $api->delete_private_nameserver(
             domain_name             => $domain->name,
@@ -72,7 +79,7 @@ subtest 'Delete Private Nameserver - No Other Private Nameservers' => sub {
 };
 
 subtest 'Delete Private Nameserver - Remaining Private Nameservers' => sub {
-    my $api = create_api();
+    my $api    = create_api();
     my $domain = create_domain();
 
     my $private_nameserver_ns1 = WWW::eNom::PrivateNameServer->new(
@@ -98,6 +105,13 @@ subtest 'Delete Private Nameserver - Remaining Private Nameservers' => sub {
             private_nameserver => $private_nameserver_ns2
         );
     } 'Lives through creation of private nameserver';
+
+    lives_ok {
+        $domain = $api->update_nameservers_for_domain_name({
+            domain_name => $domain->name,
+            ns          => [ $private_nameserver_ns1->name, $private_nameserver_ns2->name ],
+        });
+    } 'Lives through making the private nameservers the only ones on the domain';
 
     lives_ok {
         $api->delete_private_nameserver(

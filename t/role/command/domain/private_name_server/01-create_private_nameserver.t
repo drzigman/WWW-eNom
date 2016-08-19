@@ -43,8 +43,10 @@ subtest 'Create Private Nameserver On Domain Registered To Someone Else' => sub 
 };
 
 subtest 'Create Private Nameserver' => sub {
-    my $api    = create_api();
-    my $domain = create_domain();
+    my $api                 = create_api();
+    my @initial_nameservers = ( 'ns1.enom.com', 'ns2.enom.com' );
+    my $domain              = create_domain( ns => \@initial_nameservers );
+
     my $private_nameserver = WWW::eNom::PrivateNameServer->new(
         name   => 'ns1.' . $domain->name,
         ip     => '4.2.2.1',
@@ -59,15 +61,16 @@ subtest 'Create Private Nameserver' => sub {
 
     my $retrieved_domain = $api->get_domain_by_name( $domain->name );
 
-    is_deeply( $retrieved_domain->ns, [ 'ns1.' . $domain->name ], 'Correct ns' );
+    cmp_bag( $retrieved_domain->ns, [ @initial_nameservers, 'ns1.' . $domain->name ], 'Correct ns' );
 
     ok( $retrieved_domain->has_private_nameservers, 'Correctly has private nameservers');
     cmp_bag( $retrieved_domain->private_nameservers, [ $private_nameserver ], 'Correct private_nameservers' );
 };
 
 subtest 'Create Private Nameserver - Other Private Nameservers In Use' => sub {
-    my $api    = create_api();
-    my $domain = create_domain();
+    my $api                 = create_api();
+    my @initial_nameservers = ( 'ns1.enom.com', 'ns2.enom.com' );
+    my $domain              = create_domain( ns => \@initial_nameservers );
 
     my $private_nameserver_ns1 = WWW::eNom::PrivateNameServer->new(
         name   => 'ns1.' . $domain->name,
@@ -95,7 +98,8 @@ subtest 'Create Private Nameserver - Other Private Nameservers In Use' => sub {
 
     my $retrieved_domain = $api->get_domain_by_name( $domain->name );
 
-    cmp_bag( $retrieved_domain->ns, [ map { $_->name } ( $private_nameserver_ns1, $private_nameserver_ns2 ) ], 'Correct ns' );
+    cmp_bag( $retrieved_domain->ns,
+        [ @initial_nameservers, map { $_->name } ( $private_nameserver_ns1, $private_nameserver_ns2 ) ], 'Correct ns' );
 
     ok( $retrieved_domain->has_private_nameservers, 'Correctly has private nameservers' );
     cmp_bag( $retrieved_domain->private_nameservers,

@@ -290,7 +290,7 @@ B<NOTE> L<eNom|https://www.eNom.com> actually calls this the B<AuxBilling> conta
 
 An ArrayRef of L<WWW::eNom::PrivateNameServer> objects that comprise the private nameservers for this domain, provides a predicate of has_private_nameservers.
 
-B<NOTE> Due to limitations of L<eNom|https://www.enom.com>'s API, all private nameservers B<*MUST*> be used as authoriative nameservers (i.e., they must also appear in the L</ns> attribute).  See L<WWW::eNom::Role::Command::Domain::PrivateNameServer/LIMITATIONS> for more information about this and other limitations.
+B<NOTE> Due to limitations of L<eNom|https://www.enom.com>'s API, all private nameservers B<*MUST*> be used as authoritative nameservers (i.e., they must also appear in the L</ns> attribute).  See L<WWW::eNom::Role::Command::Domain::PrivateNameServer/LIMITATIONS> for more information about this and other limitations.
 
 =head1 METHODS
 

@@ -222,7 +222,7 @@ sub update_nameservers_for_domain_name {
             croak 'Unknown error';
         }
 
-        # Delete private nameservers that are no longer being used as authorative
+        # Delete private nameservers that are no longer being used as authoritative
         for my $private_nameserver_name ( @initial_private_nameserver_names ) {
             if( grep { $_ eq $private_nameserver_name } @{ $args{ns} } ) {
                 next;
@@ -480,7 +480,7 @@ Needed in order to construct a full L<WWW::eNom::Domain> object.
 
 =item delete_private_nameserver
 
-Needed in order to keep private nameservers and authorative nameservers in sync.
+Needed in order to keep private nameservers and authoritative nameservers in sync.
 
 =back
 

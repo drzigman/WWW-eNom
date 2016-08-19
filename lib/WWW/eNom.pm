@@ -145,7 +145,7 @@ New Domain Transfers.
 
 =item L<get_transfer_by_name|WWW::eNom::Role::Command::Domain::Transfer/get_transfer_by_name>
 
-=item L<get_transfer_order_id_from_parent_order_id|WWW::eNom::eNom::Role::Command::Domain::Transfer/get_transfer_order_id_from_parent_order_id>
+=item L<get_transfer_order_id_from_parent_order_id|WWW::eNom::Role::Command::Domain::Transfer/get_transfer_order_id_from_parent_order_id>
 
 =back
 
