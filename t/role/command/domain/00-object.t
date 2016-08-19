@@ -15,6 +15,7 @@ subtest "$ROLE is a well formed role" => sub {
     is_role_ok( $ROLE );
     requires_method_ok( $ROLE, 'submit' );
     requires_method_ok( $ROLE, 'get_contacts_by_domain_name' );
+    requires_method_ok( $ROLE, 'delete_private_nameserver' );
 };
 
 subtest "$ROLE has the correct methods" => sub {

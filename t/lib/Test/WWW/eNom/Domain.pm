@@ -66,16 +66,16 @@ our @EXPORT_OK = qw(
 sub create_domain {
     my ( %args ) = validated_hash(
         \@_,
-        name               => { isa => DomainName,  optional => 1 },
-        ns                 => { isa => DomainNames, optional => 1 },
-        is_locked          => { isa => Bool,        optional => 1 },
-        is_private         => { isa => Bool,        optional => 1 },
-        is_auto_renew      => { isa => Bool,        optional => 1 },
-        years              => { isa => PositiveInt, optional => 1 },
-        registrant_contact => { isa => Contact,     optional => 1 },
-        admin_contact      => { isa => Contact,     optional => 1 },
-        technical_contact  => { isa => Contact,     optional => 1 },
-        billing_contact    => { isa => Contact,     optional => 1 },
+        name                => { isa => DomainName,         optional => 1 },
+        ns                  => { isa => DomainNames,        optional => 1 },
+        is_locked           => { isa => Bool,               optional => 1 },
+        is_private          => { isa => Bool,               optional => 1 },
+        is_auto_renew       => { isa => Bool,               optional => 1 },
+        years               => { isa => PositiveInt,        optional => 1 },
+        registrant_contact  => { isa => Contact,            optional => 1 },
+        admin_contact       => { isa => Contact,            optional => 1 },
+        technical_contact   => { isa => Contact,            optional => 1 },
+        billing_contact     => { isa => Contact,            optional => 1 },
     );
 
     $args{name}               //= 'test-' . random_string('nnccnnccnnccnnccnnccnncc') . '.com';

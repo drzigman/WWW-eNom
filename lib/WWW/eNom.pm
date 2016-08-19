@@ -209,6 +209,20 @@ Addon products that can be sold along with domains.
 
 =back
 
+=head2 L<Private Nameservers|WWW::eNom::Role::Command::Domain::PrivateNameServer>
+
+Management of Private Name Servers.
+
+=over 4
+
+=item L<create_private_nameserver|WWW::eNom::Role::Command::Domain::PrivateNameServer/create_private_nameserver>
+
+=item L<retrieve_private_nameserver_by_name|WWW::eNom::Role::Command::Domain::PrivateNameServer/retrieve_private_nameserver_by_name>
+
+=item L<delete_private_nameserver|WWW::eNom::Role::Command::Domain::PrivateNameServer/delete_private_nameserver>
+
+=back
+
 =head1 OBJECTS
 
 Rather than working with messy XML objects or HashRefs, WWW::eNom implements a series of L<Moose> objects for making requests and processing responses.  All commands that take an object have coercion so a HashRef can be used in it's place.
@@ -236,6 +250,10 @@ Request to register a domain.
 =head2 L<WWW::eNom::DomainRequest::Transfer>
 
 Request to transfer a domain.
+
+=head2 L<WWW::eNom::PrivateNameServer>
+
+Private nameservers.
 
 =head1 WITH
 
