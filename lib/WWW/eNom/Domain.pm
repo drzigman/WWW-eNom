@@ -8,7 +8,7 @@ use MooseX::StrictConstructor;
 use MooseX::Params::Validate;
 use namespace::autoclean;
 
-use WWW::eNom::Types qw( Bool Contact DateTime DomainName DomainNames HashRef PositiveInt Str );
+use WWW::eNom::Types qw( Bool Contact DateTime DomainName DomainNames HashRef PositiveInt Str PrivateNameServers );
 
 use WWW::eNom::Contact;
 use DateTime;
@@ -104,18 +104,25 @@ has 'billing_contact' => (
     required => 1,
 );
 
+has 'private_nameservers' => (
+    is        => 'ro',
+    isa       => PrivateNameServers,
+    predicate => 'has_private_nameservers',
+);
+
 with 'WWW::eNom::Role::ParseDomain';
 
 sub construct_from_response {
     my $self     = shift;
     my ( %args ) = validated_hash(
         \@_,
-        domain_info   => { isa => HashRef },
-        is_auto_renew => { isa => Bool },
-        is_locked     => { isa => Bool },
-        name_servers  => { isa => DomainNames },
-        contacts      => { isa => HashRef },
-        created_date  => { isa => DateTime },
+        domain_info         => { isa => HashRef },
+        is_auto_renew       => { isa => Bool },
+        is_locked           => { isa => Bool },
+        name_servers        => { isa => DomainNames },
+        private_nameservers => { isa => PrivateNameServers, optional => 1 },
+        contacts            => { isa => HashRef },
+        created_date        => { isa => DateTime },
     );
 
     return try {
@@ -134,6 +141,7 @@ sub construct_from_response {
             admin_contact       => $args{contacts}{admin_contact},
             technical_contact   => $args{contacts}{technical_contact},
             billing_contact     => $args{contacts}{billing_contact},
+            $args{private_nameservers} ? ( private_nameservers => $args{private_nameservers} ) : ( ),
         });
     }
     catch {
@@ -165,22 +173,25 @@ WWW::eNom::Domain - Representation of Registered eNom Domain
 
     # Create New Domain Object, note that domain registration is handled by
     # WWW::eNom::DomainRequest::Registration.
-    my $contact = WWW::eNom::Contact->new( ... );
+    my $contact              = WWW::eNom::Contact->new( ... );
+    my $private_name_servers = [ WWW::eNom::PrivateNameServer->new( ... ) ];
+
     my $domain  = WWW::eNom::Domain->new(
-        id                  => 42,
-        name                => 'drzigman.com',
-        status              => 'Paid',
-        verification_status => 'Pending Suspension',
-        is_auto_renew       => 0,
-        is_locked           => 1,
-        is_private          => 0,
-        created_date        => DateTime->...,
-        expiration_date     => DateTime->...,
-        ns                  => [ 'ns1.enom.com', 'ns2.enom.com' ],
-        registrant_contact  => $contact,
-        admin_contact       => $contact,
-        technical_contact   => $contact,
-        billing_contact     => $contact,
+        id                   => 42,
+        name                 => 'drzigman.com',
+        status               => 'Paid',
+        verification_status  => 'Pending Suspension',
+        is_auto_renew        => 0,
+        is_locked            => 1,
+        is_private           => 0,
+        created_date         => DateTime->...,
+        expiration_date      => DateTime->...,
+        ns                   => [ 'ns1.enom.com', 'ns2.enom.com' ],
+        registrant_contact   => $contact,
+        admin_contact        => $contact,
+        technical_contact    => $contact,
+        billing_contact      => $contact,
+        private_name_servers => $private_name_servers,   # Optional
     );
 
     # Construct From eNom Response
@@ -275,6 +286,12 @@ A L<WWW::eNom::Contact> for the Billing Contact.
 
 B<NOTE> L<eNom|https://www.eNom.com> actually calls this the B<AuxBilling> contact since the primary billing contact is the reseller's information.
 
+=head2 B<private_nameservers>
+
+An ArrayRef of L<WWW::eNom::PrivateNameServer> objects that comprise the private nameservers for this domain, provides a predicate of has_private_nameservers.
+
+B<NOTE> Due to limitations of L<eNom|https://www.enom.com>'s API, all private nameservers B<*MUST*> be used as authoritative nameservers (i.e., they must also appear in the L</ns> attribute).  See L<WWW::eNom::Role::Command::Domain::PrivateNameServer/LIMITATIONS> for more information about this and other limitations.
+
 =head1 METHODS
 
 =head2 construct_from_response
@@ -289,12 +306,13 @@ B<NOTE> L<eNom|https://www.eNom.com> actually calls this the B<AuxBilling> conta
     });
 
     my $domain = WWW::eNom::Domain->construct_from_response(
-        domain_info   => $response->{GetDomainInfo},
-        is_auto_renew => $api->get_is_domain_auto_renew_by_name( $domain_name ),
-        is_locked     => $api->get_is_domain_locked_by_name( $domain_name ),
-        name_servers  => $api->get_domain_name_servers_by_name( $domain_name ),
-        contacts      => $api->get_contacts_by_domain_name( $domain_name ),
-        created_date  => $api->get_domain_created_date_by_name( $domain_name ),
+        domain_info          => $response->{GetDomainInfo},
+        is_auto_renew        => $api->get_is_domain_auto_renew_by_name( $domain_name ),
+        is_locked            => $api->get_is_domain_locked_by_name( $domain_name ),
+        name_servers         => $api->get_domain_name_servers_by_name( $domain_name ),
+        private_name_servers => $private_name_servers,                                   # Optional
+        contacts             => $api->get_contacts_by_domain_name( $domain_name ),
+        created_date         => $api->get_domain_created_date_by_name( $domain_name ),
     );
 
 Creates an instance of $self given several parameters:

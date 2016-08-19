@@ -235,7 +235,7 @@ B<NOTE> A false value means you must also provide all of the contacts ( registra
 
 A L<WWW::eNom::Contact> for the Registrant Contact.
 
-This is required if the L<verification_type> is Fax, or if L<use_existing_contacts> is false.
+This is required if the L<verification_method> is Fax, or if L<use_existing_contacts> is false.
 
 =head2 admin_contact
 

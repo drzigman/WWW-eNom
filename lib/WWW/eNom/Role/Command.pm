@@ -19,6 +19,7 @@ with 'WWW::eNom::Role::Command::Raw',
      'WWW::eNom::Role::Command::Domain::Availability',
      'WWW::eNom::Role::Command::Domain::Registration',
      'WWW::eNom::Role::Command::Domain::Transfer',
+     'WWW::eNom::Role::Command::Domain::PrivateNameServer',
      'WWW::eNom::Role::Command::Service';
 
 # VERSION
@@ -105,6 +106,8 @@ WWW::eNom::Role::Command - Basic Logic for Submission of Requests to eNom
 =item L<WWW::eNom::Role::Command::Domain::Registration>
 
 =item L<WWW::eNom::Role::Command::Domain::Transfer>
+
+=item L<WWW::eNom::Role::Command::Domain::PrivateNameServer>
 
 =item L<WWW::eNom::Role::Command::Service>
 

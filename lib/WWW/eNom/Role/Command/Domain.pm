@@ -10,12 +10,13 @@ use WWW::eNom::Types qw( Bool DomainName DomainNames PositiveInt );
 
 use WWW::eNom::Domain;
 
+use Data::Util qw( is_array_ref );
 use DateTime::Format::DateParse;
 use Mozilla::PublicSuffix qw( public_suffix );
 use Try::Tiny;
 use Carp;
 
-requires 'submit', 'get_contacts_by_domain_name';
+requires 'submit', 'get_contacts_by_domain_name', 'delete_private_nameserver';
 
 # VERSION
 # ABSTRACT: Domain Related Operations
@@ -44,11 +45,20 @@ sub get_domain_by_name {
             croak 'Response did not contain domain info';
         }
 
+        # There is no way to ask eNom what the private nameservers are so we use
+        # the fact that they must have the same root domain in order to differentiate
+        # between private and "regular" nameservers
+        my $nameservers = $self->get_domain_name_servers_by_name( $domain_name );
+        my @private_nameservers = map {
+            $self->retrieve_private_nameserver_by_name( $_ )
+        } grep { $_ =~ m/\Q$domain_name/ } @{ $nameservers };
+
         return WWW::eNom::Domain->construct_from_response(
             domain_info   => $response->{GetDomainInfo},
             is_auto_renew => $self->get_is_domain_auto_renew_by_name( $domain_name ),
             is_locked     => $self->get_is_domain_locked_by_name( $domain_name ),
-            name_servers  => $self->get_domain_name_servers_by_name( $domain_name ),
+            name_servers  => $nameservers,
+            scalar @private_nameservers ? ( private_nameservers => \@private_nameservers ) : ( ),
             contacts      => $self->get_contacts_by_domain_name( $domain_name ),
             created_date  => $self->get_domain_created_date_by_name( $domain_name ),
         );
@@ -171,7 +181,8 @@ sub get_domain_name_servers_by_name {
             croak 'Response did not contain nameserver data';
         }
 
-        return $response->{dns};
+        # If there is only one NS convert the scalar to an arrayref
+        return is_array_ref( $response->{dns} ) ? $response->{dns} : [ $response->{dns} ];
     }
     catch {
         croak $_;
@@ -187,6 +198,10 @@ sub update_nameservers_for_domain_name {
     );
 
     try {
+        my @initial_private_nameserver_names = grep {
+            $_ =~ m/\Q$args{domain_name}/
+        } @{ $self->get_domain_name_servers_by_name( $args{domain_name} ) };
+
         my $response = $self->submit({
             method => 'ModifyNS',
             params => {
@@ -205,6 +220,18 @@ sub update_nameservers_for_domain_name {
             }
 
             croak 'Unknown error';
+        }
+
+        # Delete private nameservers that are no longer being used as authoritative
+        for my $private_nameserver_name ( @initial_private_nameserver_names ) {
+            if( grep { $_ eq $private_nameserver_name } @{ $args{ns} } ) {
+                next;
+            }
+
+            $self->delete_private_nameserver(
+                domain_name             => $args{domain_name},
+                private_nameserver_name => $private_nameserver_name,
+            );
         }
     }
     catch {
@@ -451,6 +478,10 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
 
 Needed in order to construct a full L<WWW::eNom::Domain> object.
 
+=item delete_private_nameserver
+
+Needed in order to keep private nameservers and authoritative nameservers in sync.
+
 =back
 
 =head1 DESCRIPTION
@@ -542,6 +573,8 @@ This method will croak if the domain is owned by someone else or if it is not re
 Abstraction of the L<ModifyNS|https://www.enom.com/api/API%20topics/api_ModifyNS.htm> eNom API Call.  Given a FQDN and an ArrayRef of FQDNs to use as nameservers, updates the nameservers and returns an updated version L<WWW::eNom::Domain>.
 
 This method will croak if the domain is owned by someone else or if it is not registered.  It will also croak if you provide an invalid nameserver (such as ns1.some-domain-that-does-not-really-exist.com).
+
+B<NOTE> If, during the update, you remove a private nameserver (by not including it in the ns ArrayRef) that private nameserver will be B<deleted>.  This is a limitation of L<eNom|https://www.enom.com>'s API.
 
 =head2 get_is_domain_auto_renew_by_name
 
