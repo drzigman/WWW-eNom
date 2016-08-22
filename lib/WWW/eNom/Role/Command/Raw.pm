@@ -1,4 +1,4 @@
-package WWW::eNom::Role::Commands;
+package WWW::eNom::Role::Command::Raw;
 
 use strict;
 use warnings;
@@ -9,6 +9,7 @@ use MooseX::Params::Validate;
 
 use WWW::eNom::Types qw( HTTPTiny Str Strs );
 
+use Data::Util qw( is_hash_ref );
 use HTTP::Tiny;
 use XML::LibXML::Simple qw( XMLin );
 use Mozilla::PublicSuffix qw( public_suffix );
@@ -88,14 +89,14 @@ Readonly my $COMMANDS => [qw(
     XXX_GetMemberId XXX_RemoveMemberId XXX_SetMemberId
 )];
 
-has _api_commands => (
+has '_api_commands' => (
     is       => 'ro',
     isa      => Strs,
     default  => sub { $COMMANDS },
     init_arg => undef,
 );
 
-has _ua => (
+has '_ua' => (
     is      => 'ro',
     isa     => HTTPTiny,
     lazy    => 1,
@@ -116,10 +117,14 @@ sub install_methods {
     for my $command (@{ $self->_api_commands }) {
         $self->meta->add_method(
             $command => sub {
-                my ($self, @opts) = @_;
+                my $self = shift;
+                my %args = @_ == 1 && is_hash_ref( $_[0] ) ? %{ $_[0] } : @_;
 
-                my $uri      = $self->_make_query_string( $command, @opts );
+                my $uri      = $self->_make_query_string( $command, \%args );
                 my $response = $self->_ua->get( $uri )->{content};
+
+#                print STDERR "URI: $uri\n";
+#                print STDERR "Response: $response\n";
 
                 if ( $self->response_type eq "xml_simple" ) {
                     $response = $self->_serialize_xml_simple_response( $response );
@@ -134,11 +139,13 @@ sub install_methods {
 }
 
 sub _make_query_string {
-    my ($self, $command, %opts) = @_;
+    my $self    = shift;
+    my $command = shift;
+    my %args    = @_ == 1 && is_hash_ref( $_[0] ) ? %{ $_[0] } : @_;
 
     my $uri = $self->_uri;
-    if ( $command ne "CertGetApproverEmail" && exists $opts{Domain} ) {
-        @opts{qw(SLD TLD)} = $self->_split_domain(delete $opts{Domain});
+    if ( $command ne "CertGetApproverEmail" && exists $args{Domain} ) {
+        @args{qw(SLD TLD)} = $self->_split_domain(delete $args{Domain});
     }
 
     my $response_type = $self->response_type eq 'xml_simple' ? 'xml' : $self->response_type;
@@ -148,7 +155,7 @@ sub _make_query_string {
         uid          => $self->username,
         pw           => $self->password,
         responseType => $response_type,
-        %opts
+        %args,
     );
 
     return $uri;
@@ -203,3 +210,108 @@ sub _serialize_xml_simple_response {
 1;
 
 __END__
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+WWW::eNom::Role::Command::Raw - Low Level Access to eNom API
+
+=head1 SYNOPSIS
+
+    use WWW::eNom;
+
+    my $eNom     = WWW::eNom->new( ... );
+    my $response = $eNom->Check(
+        SLD => 'enom',
+        TLD => 'com',
+    );
+
+=head1 REQUIRES
+
+=over 4
+
+=item username
+
+=item password
+
+=item _uri
+
+=item response_type
+
+=back
+
+=head1 DESCRIPTION
+
+This role composes a series of methods into the consuming class (L<WWW::eNom>) that directly expose methods of the L<eNom|http://www.enom.com/APICommandCatalog/> API.  It is the lowest level of access to the eNom API and is intended only for the most advanced usages that are not covered by other commands.
+
+B<NOTE> You almost never want to make this low level of a call.  You really should be looking at the L<commands|WWW::eNom/COMMANDS> to find the specific method to accomplish your goals.
+
+=head1 METHODS
+
+Most of the eNom API Methods have been included and are exposed based on the name of the method as documented in L<eNom's API Reference Docs|http://www.enom.com/APICommandCatalog/API%20topics/api_alpha_list.htm>.  If you really wish to use the eNom API directly this is how you would do it, but keep in mind you'll have to read the details of the documentation for that method and handle the parsing of request params and the response yourself.  Again, you should try very hard to avoid doing this, if you find some functionalty that is not exposed through L<WWW::eNom> a bug report or pull request is your best bet.
+
+However, if your heart is set then let's use an example method to demonstrate how best to make use of these low level API calls.
+
+=head2 Check
+
+    use WWW::eNom;
+
+    my $eNom = WWW::eNom->new(
+        ...
+        response_type => 'xml_simple',
+    );
+
+￼   my $response = $eNom->Check(
+        SLD => 'enom',
+        TLD => 'com',
+    );
+
+Although not required, it is recommend that you specify a response_type of 'xml_simple' when making low level requests.  This will at least make the response a HashRef (rather than a string).  This response should look very similar to the response documented by the specific method with eNom with the following modifications made to make the system easier to work with.
+
+=over 4
+
+=item "responses" returns an ArrayRef of HashRefs
+
+=item Keys which end with a number are transformed into an ArrayRef
+
+If you had a response:
+
+    {
+        RRPText1 => 'Domain Not Available',
+        RRPText2 => 'Domain Available',
+        RRPText3 => 'Domain Not Available',
+    }
+
+This is automagically converted into...
+
+    {
+        RRPText => [ 'Domain Not Available', 'Domain Available', 'Domain Not Available' ],
+    }
+
+This is especially important when looking at errors or the "ErrX" response.  Rather than having the numbered responses, that is converted to an ArrayRef.
+
+=back
+
+These changes make a possible response look like:
+
+    {
+        Domain  => [qw(enom.com enom.net enom.org enom.biz enom.info)],
+        Command => "CHECK",
+        RRPCode => [qw(211 211 211 211 211)],
+        RRPText => [
+            "Domain not available",
+            "Domain not available",
+            "Domain not available",
+            "Domain not available",
+            "Domain not available"
+        ]
+    }
+
+However, keep in mind you will need to refer to the actual documentation from eNom because even similar methods could have vastly different responses.
+
+=for Pod::Coverage install_methods
+
+=cut
