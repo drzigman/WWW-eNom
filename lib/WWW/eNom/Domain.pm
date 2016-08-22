@@ -11,8 +11,10 @@ use namespace::autoclean;
 use WWW::eNom::Types qw( Bool Contact DateTime DomainName DomainNames HashRef PositiveInt Str PrivateNameServers );
 
 use WWW::eNom::Contact;
+
 use DateTime;
 use DateTime::Format::DateParse;
+use Mozilla::PublicSuffix qw( public_suffix );
 
 use Try::Tiny;
 use Carp;
@@ -126,14 +128,24 @@ sub construct_from_response {
     );
 
     return try {
+        my ( $verification_status, $is_private );
+        if( public_suffix( $args{domain_info}{domainname}{content} ) eq 'us' ) {
+            $verification_status = 'Verification Not Needed';
+            $is_private          = 0;
+        }
+        else {
+            $verification_status = $args{domain_info}{services}{entry}{raasettings}{raasetting}{verificationstatus};
+            $is_private          = ( $args{domain_info}{services}{entry}{wpps}{service}{content} == 1120 );
+        }
+
         return $self->new({
             id                  => $args{domain_info}{domainname}{domainnameid},
             name                => $args{domain_info}{domainname}{content},
             status              => $args{domain_info}{status}{registrationstatus},
-            verification_status => $args{domain_info}{services}{entry}{raasettings}{raasetting}{verificationstatus},
+            verification_status => $verification_status,
             is_auto_renew       => $args{is_auto_renew},
             is_locked           => $args{is_locked},
-            is_private          => ( $args{domain_info}{services}{entry}{wpps}{service}{content} == 1120 ),
+            is_private          => $is_private,
             created_date        => $args{created_date},
             expiration_date     => DateTime::Format::DateParse->parse_datetime( $args{domain_info}{status}{expiration} ),
             ns                  => $args{name_servers},

@@ -33,6 +33,8 @@ use MooseX::Types -declare => [qw(
     DomainNames
     EmailAddress
     HTTPTiny
+    NexusPurpose
+    NexusCategory
     NumberPhone
     ResponseType
     TransferVerificationMethod
@@ -63,7 +65,9 @@ subtype Int,      as MooseInt;
 subtype Str,      as MooseStr;
 subtype Strs,     as ArrayRef[Str];
 
-enum ContactType, [qw( Registrant Tech Admin AuxBilling )];
+enum ContactType,   [qw( Registrant Tech Admin AuxBilling )];
+enum NexusCategory, [qw( C11 C12 C21 C31 C32 )];
+enum NexusPurpose,  [qw( P1 P2 P3 P4 P5 )];
 
 subtype DomainName, as Str,
     where { is_domain( $_ ) },

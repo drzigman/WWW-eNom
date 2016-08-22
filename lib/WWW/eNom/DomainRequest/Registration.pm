@@ -7,7 +7,9 @@ use Moose;
 use MooseX::StrictConstructor;
 use namespace::autoclean;
 
-use WWW::eNom::Types qw( Bool Contact DomainName DomainNames Int );
+use WWW::eNom::Types qw( Bool Contact DomainName DomainNames Int NexusCategory NexusPurpose );
+
+use Carp;
 
 # VERSION
 # ABSTRACT: Domain Registration Request
@@ -84,7 +86,40 @@ has 'billing_contact' => (
     required => 1,
 );
 
+has 'nexus_purpose' => (
+    is        => 'ro',
+    isa       => NexusPurpose,
+    predicate => 'has_nexus_purpose',
+);
+
+has 'nexus_category' => (
+    is        => 'ro',
+    isa       => NexusCategory,
+    predicate => 'has_nexus_category',
+);
+
 with 'WWW::eNom::Role::ParseDomain';
+
+sub BUILD {
+    my $self = shift;
+
+    if( $self->public_suffix eq 'us' ) {
+        if( !$self->has_nexus_purpose || !$self->has_nexus_category ) {
+            croak '.us domain registration require a nexus_purpose and a nexus_category';
+        }
+
+        if( $self->is_private ) {
+            croak 'Domain Privacy is not available for .us domains';
+        }
+    }
+    else {
+        if( $self->has_nexus_purpose || $self->has_nexus_category ) {
+            croak 'nexus values should only be provided for .us domains';
+        }
+    }
+
+    return;
+}
 
 sub construct_request {
     my $self = shift;
@@ -100,6 +135,8 @@ sub construct_request {
         RenewName       => ( $self->is_auto_renew    ? 1    : 0     ),
         AllowQueueing   => ( $self->is_queueable     ? 1    : 0     ),
         NumYears        => $self->years,
+        $self->has_nexus_purpose  ? ( us_purpose => $self->nexus_purpose  ) : ( ),
+        $self->has_nexus_category ? ( us_nexus   => $self->nexus_category ) : ( ),
         %{ $self->registrant_contact->construct_creation_request('Registrant') },
         %{ $self->admin_contact->construct_creation_request('Admin')           },
         %{ $self->technical_contact->construct_creation_request('Tech')        },
@@ -137,6 +174,8 @@ WWW::eNom::DomainRequest::Registration - Domain Registration Request
         is_auto_renew      => 0,   # Optional, defaults to false
         is_queueable       => 0,   # Optional, defaults to false
         years              => 1,
+        nexus_purpose      => 'P1',    # Only for .us domains
+        nexus_category     => 'C11',   # Only for .us domains
         registrant_contact => $contact,
         technical_contact  => $contact,
         admin_contact      => $contact,
@@ -189,6 +228,8 @@ Boolean that defaults to true.  Indicates if the domain should be locked, preven
 
 Boolean that defaults to false.  If true, the L<WPPS Service|https://www.enom.com/api/Value%20Added%20Topics/ID%20Protect.htm> (what eNom calls Privacy Protection) will automatically be purchased and enabled.
 
+It's worth noting that not all domains permit domain privacy.  If you attempt to purchase a domain with privacy for one of these domains (such as a .us registration) construction of the request will croak.
+
 =head2 is_auto_renew
 
 Boolean that defaults to false.  If true, this domain will be automatically renewed by eNom before it expires.
@@ -200,6 +241,46 @@ Boolean that defaults to false.  If true, eNom will "queue" domain registration 
 =head2 B<years>
 
 The number of years to register the domain for.  Keep in mind there are limits (based on the Public Suffix) but generally this is a Positive Integer between 1 and 10.
+
+=head2 nexus_purpose
+
+This is the B<Domain Name Application Purpose Code>, the reason this domain was registered and a bit about it's intended usage.  This should be populated B<ONLY> for .us domain registrations.  The descriptions come from L<http://www.whois.us/whois-gui/US/faqs.html>.
+
+Must be one of the following I<2 character> values:
+
+=over 4
+
+=item P1 - Business use for profit.
+
+=item P2 - Non-profit business, club, association, religious organization, etc.
+
+=item P3 - Personal use.
+
+=item P4 - Education purposes.
+
+=item P5 - Government purposes
+
+=back
+
+=head2 B<nexus_category>
+
+This is the B<Nexus Code>, it contains information about the contact and their relationship with respect to US residency.  This should be populated B<ONLY> for .us domain registrations.  The descriptions come from L<http://www.whois.us/whois-gui/US/faqs.html>.
+
+Must be one of the following I<2 character> values:
+
+=over 4
+
+=item C11 - A natural person who is a United States citizen.
+
+=item C12 - A natural person who is a permanent resident of the United States of America, or any of its possessions or territories.
+
+=item C21 - A US-based organization or company (A US-based organization or company formed within one of the fifty (50) U.S. states, the District of Columbia, or any of the United States possessions or territories, or organized or otherwise constituted under the laws of a state of the United States of America, the District of Columbia or any of its possessions or territories or a U.S. federal, state, or local government entity or a political subdivision thereof).
+
+=item C31 - A foreign entity or organization (A foreign entity or organization that has a bona fide presence in the United States of America or any of its possessions or territories who regularly engages in lawful activities (sales of goods or services or other business, commercial or non-commercial, including not-for-profit relations in the United States)).
+
+=item C32 - Entity has an office or other facility in the United States.
+
+=back
 
 =head2 B<registrant_contact>
 
