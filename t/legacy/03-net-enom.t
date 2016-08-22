@@ -9,7 +9,9 @@ use Test::Warn;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib/";
-use Test::WWW::eNom qw( $ENOM_USERNAME $ENOM_PASSWORD );
+use Test::WWW::eNom qw( check_for_credentials $ENOM_USERNAME $ENOM_PASSWORD );
+
+check_for_credentials();
 
 subtest 'Deprecation Warning Is Emitted' => sub {
     warning_is {
