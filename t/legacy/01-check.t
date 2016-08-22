@@ -72,13 +72,13 @@ subtest 'Get Status of Single SLD Multiple TLDs Using Domain' => sub {
     cmp_ok( $response->{ErrCount},   '==', 0, 'No errors' );
 
     my @expected_responses = (
-        { index => 0, domain => 'enom.com',  rrp_text => 'Domain not available',                  rrp_code => 211 },
-        { index => 1, domain => 'enom.net',  rrp_text => 'Domain not available',                  rrp_code => 211 },
-        { index => 2, domain => 'enom.org',  rrp_text => 'Domain available',                      rrp_code => 210 },
-        { index => 3, domain => 'enom.info', rrp_text => 'Command failed; Internal server error', rrp_code => 421 },
-        { index => 4, domain => 'enom.biz',  rrp_text => 'Domain not available',                  rrp_code => 211 },
-        { index => 5, domain => 'enom.ws',   rrp_text => 'Domain not available',                  rrp_code => 211 },
-        { index => 6, domain => 'enom.us',   rrp_text => 'Domain available',                      rrp_code => 210 },
+        { index => 0, domain => 'enom.com',  rrp_text => 'Domain not available',  rrp_code => 211 },
+        { index => 1, domain => 'enom.net',  rrp_text => 'Domain not available',  rrp_code => 211 },
+        { index => 2, domain => 'enom.org',  rrp_text => 'Domain available',      rrp_code => 210 },
+        { index => 3, domain => 'enom.info', rrp_text => 'Domain available',      rrp_code => 210 },
+        { index => 4, domain => 'enom.biz',  rrp_text => 'Domain not available',  rrp_code => 211 },
+        { index => 5, domain => 'enom.ws',   rrp_text => 'no fee:object',         rrp_code => 541 },
+        { index => 6, domain => 'enom.us',   rrp_text => 'Domain available',      rrp_code => 210 },
     );
 
     for my $expected_response ( @expected_responses ) {
