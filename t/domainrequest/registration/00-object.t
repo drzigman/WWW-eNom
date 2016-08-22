@@ -28,10 +28,14 @@ subtest "$CLASS has the correct attributes" => sub {
     has_attribute_ok( $CLASS, 'admin_contact' );
     has_attribute_ok( $CLASS, 'technical_contact' );
     has_attribute_ok( $CLASS, 'billing_contact' );
+    has_attribute_ok( $CLASS, 'nexus_purpose' );
+    has_attribute_ok( $CLASS, 'nexus_category' );
 };
 
 subtest "$CLASS has the correct predicates" => sub {
     has_method_ok( $CLASS, 'has_ns' );
+    has_method_ok( $CLASS, 'has_nexus_purpose' );
+    has_method_ok( $CLASS, 'has_nexus_category' );
 };
 
 subtest "$CLASS has the correct methods" => sub {
