@@ -1,5 +1,18 @@
 Revision history for WWW-eNom
 
+v2.1.0    2016-09-02
+    - Added support for updating the IP of a Private Nameserver
+
+v2.0.0    2016-08-22
+    * MAJOR RELEASE *
+
+    - While preserving backwards compatibility, introduced a new Moose
+      driven architecture.  This abstracts most of eNom API methods behind
+      a set of easy to use Models (instead of Hashes) and a Command
+      Pattern for performing eNom Operations (instead of having to
+      understand exactly how the eNom API Works)
+    - Extensive documentation for working with eNom for Domain Operations
+
 v1.4.0    2016-07-07
     - Trial Release
     - Robert Stone (drzigman) new maintainer
