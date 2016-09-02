@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( Domain DomainName PrivateNameServer );
+use WWW::eNom::Types qw( Domain DomainName IP PrivateNameServer );
 
 use WWW::eNom::PrivateNameServer;
 
@@ -72,6 +72,60 @@ sub create_private_nameserver {
         croak $_;
     };
 }
+
+sub update_private_nameserver_ip {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        name   => { isa => DomainName },
+        old_ip => { isa => IP },
+        new_ip => { isa => IP },
+    );
+
+    if( $args{old_ip} eq $args{new_ip} ) {
+        return $self->retrieve_private_nameserver_by_name( $args{name} );
+    }
+
+    return try {
+        my $response = $self->submit({
+            method => 'UpdateNameServer',
+            params => {
+                NS    => $args{name},
+                OldIP => $args{old_ip},
+                NewIP => $args{new_ip},
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep {    $_ eq 'Nameserver registration failed due to error 545: Object does not exist'
+                       || $_ eq 'Domain cannot be found.' } @{ $response->{errors} } ) {
+                croak 'Nameserver does not exist';
+            }
+
+            if( grep { $_ eq 'Domain ID not found.' } @{ $response->{errors} } ) {
+                croak 'Nameserver not found in your account';
+            }
+
+            if( grep {
+                    $_ =~ m/failed due to error 541: Parameter value policy error;/
+                } @{ $response->{errors} } ) {
+                croak 'Incorrect old_ip';
+            }
+
+            croak 'Unknown error';
+        }
+
+        if( !exists $response->{RegisterNameserver}{NsSuccess} || $response->{RegisterNameserver}{NsSuccess} != 1 ) {
+            croak 'Unable to update nameserver';
+        }
+
+        return $self->retrieve_private_nameserver_by_name( $args{name} );
+    }
+    catch {
+        croak $_;
+    };
+}
+
 
 sub retrieve_private_nameserver_by_name {
     my $self = shift;
@@ -175,6 +229,34 @@ WWW::eNom::Role::Command::Domain::PrivateNameServer - Domain Private Nameserver 
 
 =head1 SYNOPSIS
 
+    # Create a new Private Nameserver
+    my $domain = WWW::eNom::Domain->new( ... );
+    my $private_nameserver = WWW::eNom::PrivateNameServer->new(
+        name => 'ns1.' . $domain->name,
+        ip   => '4.2.2.1',
+    );
+
+    my $updated_domain = $api->create_private_nameserver(
+        domain_name        => $domain->name,
+        private_nameserver => $private_nameserver,
+    );
+
+    # Update the IP of an existing Private Nameserver
+    my $updated_private_nameserver  = $api->update_private_nameserver_ip(
+        name   => $private_nameserver->name,
+        old_ip => $private_nameserver->ip,
+        new_ip => '8.8.8.8',
+    );
+
+    # Retrieve existing Private Nameserver
+    my $private_nameserver = $api->retrieve_private_nameserver_by_name( 'ns1.' . $domain->name );
+
+    # Delete Private Nameserver
+    $api->delete_private_nameserver(
+        domain_name             => $domain->name,
+        private_nameserver_name => $private_nameserver->name
+    );
+
 =head1 REQUIRED
 
 =over 4
@@ -215,6 +297,19 @@ L<eNom|https://www.enom.com>'s API does not offer a method to retrieve a list of
 Abstraction of the L<RegisterNameServer|https://www.enom.com/api/API%20topics/api_RegisterNameServer.htm> eNom API call.  Given a FQDN and a L<WWW::eNom::PrivateNameServer> (or a HashRef that can be coerced into one), creates the private nameserver and adds it to the list of L<authoritative nameservers|WWW::eNom::Domain/ns> for the domain.  Keep in mind, the name of private nameserver must be a root of the domain.  So if the domain is your-domain.com, you can have ns1.your-domain.com as a private nameserver but you can not have ns1.your-other-domain.com as a private nameserver.
 
 This method will croak if the domain is owned by someone else, if it's not registered, or if the private nameserver name or ip are invalid.
+
+=head2 update_private_nameserver_ip
+
+    my $existing_private_nameserver = $api->retrieve_private_nameserver_by_name( ... );
+    my $updated_private_nameserver  = $api->update_private_nameserver_ip(
+        name   => $existing_private_nameserver->name,
+        old_ip => $existing_private_nameserver->ip,
+        new_ip => '8.8.8.8',
+    );
+
+Abstraction of the L<UpdateNameServer|https://www.enom.com/api/API%20topics/api_UpdateNameServer.htm> eNom API call.  Given a FQDN of an existing L<WWW::eNom::PrivateNameServer> as well as the old_ip, updates that private nameserver to use the new_ip.  Returned is the updated L<WWW::eNom::PrivateNameServer>.
+
+This method will croak if the domain is owned by someone else, if it's not registered, if private nameserver does not exist, or if the provided old_ip is incorrect.
 
 =head2 retrieve_private_nameserver_by_name
 
