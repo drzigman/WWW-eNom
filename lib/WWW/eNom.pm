@@ -217,6 +217,8 @@ Management of Private Name Servers.
 
 =item L<create_private_nameserver|WWW::eNom::Role::Command::Domain::PrivateNameServer/create_private_nameserver>
 
+=item L<update_private_nameserver_ip|WWW::eNom::Role::Command::Domain::PrivateNameServer/update_private_nameserver_ip>
+
 =item L<retrieve_private_nameserver_by_name|WWW::eNom::Role::Command::Domain::PrivateNameServer/retrieve_private_nameserver_by_name>
 
 =item L<delete_private_nameserver|WWW::eNom::Role::Command::Domain::PrivateNameServer/delete_private_nameserver>
