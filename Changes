@@ -1,5 +1,8 @@
 Revision history for WWW-eNom
 
+v2.1.0    2016-09-02
+    - Added support for updating the IP of a Private Nameserver
+
 v2.0.0    2016-08-22
     * MAJOR RELEASE *
 
