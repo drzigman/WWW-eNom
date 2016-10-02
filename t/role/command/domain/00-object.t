@@ -35,6 +35,8 @@ subtest "$ROLE has the correct methods" => sub {
     has_method_ok( $ROLE, 'get_domain_created_date_by_name' );
 
     has_method_ok( $ROLE, 'renew_domain' );
+
+    has_method_ok( $ROLE, 'email_epp_key_by_name' );
 };
 
 done_testing;

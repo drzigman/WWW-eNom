@@ -177,6 +177,8 @@ Domain retrieval and management.
 
 =item L<renew_domain|WWW::eNom::Role::Command::Domain/renew_domain>
 
+=item L<email_epp_key_by_name|WWW::eNom::Role::Command::Domain/email_epp_key_by_name>
+
 =back
 
 =head2 L<Service|WWW::eNom::Role::Command::Service>
