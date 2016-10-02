@@ -1,5 +1,9 @@
 Revision history for WWW-eNom
 
+v2.2.0    2016-10-02
+    - Implemented method to email a domain's EPP Key to the Registrant
+      Contact assoicated with the domain.
+
 v2.1.0    2016-09-02
     - Added support for updating the IP of a Private Nameserver
 
