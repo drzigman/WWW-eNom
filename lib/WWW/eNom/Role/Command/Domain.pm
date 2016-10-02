@@ -396,6 +396,34 @@ sub renew_domain {
     };
 }
 
+sub email_epp_key_by_name {
+    my $self = shift;
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    return try {
+        my $response = $self->submit({
+            method => 'GetSubAccountPassword',
+            params => {
+                Domain => $domain_name,
+            }
+        });
+
+        if( $response->{ErrCount} > 0 ) {
+            if( grep { $_ eq 'Domain is not available to get password' } @{ $response->{errors} } ) {
+                croak 'Domain not found in your account';
+            }
+
+            croak 'Unknown error';
+        }
+
+        # If there are no errors, assume success
+        return;
+    }
+    catch {
+        croak $_;
+    };
+}
+
 1;
 
 __END__
@@ -467,6 +495,12 @@ WWW::eNom::Role::Command::Domain - Domain Related Operations
     # Get Created Date
     my $created_date = $api->get_domain_created_date_by_name( 'drzigman.com' );
     print "This domain was created on: " . $created_date->ymd . "\n";
+
+    # Email EPP Key to Registrant Contact
+    try { $api->email_epp_key_by_name( 'drzigman.com' ) }
+    catch {
+        ...;
+    };
 
 =head1 REQUIRES
 
@@ -627,5 +661,16 @@ Abstraction of the L<Extend|https://www.enom.com/api/API%20topics/api_Extend.htm
 B<NOTE> There is a limit as to how far into the future you can renew a domain (usually it's 10 years but that can vary based on the public suffix and the registry).  In the event you try to renew too far into the future this method will croak with 'Requested renewal too long'
 
 This method will croak if the domain is owned by someone else or if it is not registered.
+
+=head2 email_epp_key_by_name
+
+    try { $api->email_epp_key_by_name( 'drzigman.com' ) }
+    catch {
+        ...;
+    };
+
+Abstraction of the L<GetSubAccountPassword|http://www.enom.com/api/API%20topics/api_GetSubAccountPassword.htm> eNom API Call.  Given a FQDN, emails the EPP Key to the email address listed for the registrant contact.
+
+B<NOTE> Unfortunately, eNom provides no API method to get the actual EPP Key.  Instead, you must use this method to ask eNom to email the EPP Key to the registrant for you.
 
 =cut
