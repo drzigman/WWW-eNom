@@ -134,7 +134,8 @@ sub construct_from_response {
             $is_private          = 0;
         }
         else {
-            $verification_status = $args{domain_info}{services}{entry}{raasettings}{raasetting}{verificationstatus};
+            # On verified domains the raasettings response is empty, if the value is missing, just call it verified.
+            $verification_status = $args{domain_info}{services}{entry}{raasettings}{raasetting}{verificationstatus} // 'Verified';
             $is_private          = ( $args{domain_info}{services}{entry}{wpps}{service}{content} == 1120 );
         }
 

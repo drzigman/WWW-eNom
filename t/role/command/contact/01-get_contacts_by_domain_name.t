@@ -113,4 +113,46 @@ subtest 'Get Contacts For Domain Missing Contact' => sub {
     }
 };
 
+subtest 'Get Contacts For Domain With No Manually Specific Contacts (Reseller Only)' => sub {
+    my $api            = create_api();
+    my $contact        = create_contact();
+    my $domain_request = WWW::eNom::DomainRequest::Registration->new({
+        name               => 'test-' . random_string('ccnnccnnccnnccnnccnnccnnccnn') . '.com',
+        ns                 => [ 'ns1.enom.com', 'ns2.enom.com' ],
+        is_ns_fail_fatal   => 0,
+        is_locked          => 0,
+        is_private         => 0,
+        is_auto_renew      => 0,
+        years              => 1,
+        is_queueable       => 0,
+        registrant_contact => $contact,
+        admin_contact      => $contact,
+        technical_contact  => $contact,
+        billing_contact    => $contact,
+    });
+
+    my $domain_creation_request = $domain_request->construct_request();
+    for my $field ( keys %{ $domain_creation_request } ) {
+        if( $field =~ m/(?:Registrant)|(?:Admin)|(?:Tech)|(?:AuxBilling)/ ) {
+            delete $domain_creation_request->{ $field };
+        }
+    }
+
+    my $domain_response;
+    lives_ok {
+        $domain_response = $api->submit({
+            method => 'Purchase',
+            params => $domain_creation_request,
+        });
+    } 'Lives through domain registration';
+
+    note('Sleeping to allow eNom time to create the account');
+    sleep 5;
+
+    my $retrieved_contacts;
+    lives_ok {
+        $retrieved_contacts = $api->get_contacts_by_domain_name( $domain_request->name );
+    } 'Lives through retrieving contacts';
+};
+
 done_testing;
