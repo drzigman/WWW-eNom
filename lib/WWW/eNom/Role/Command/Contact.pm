@@ -6,10 +6,11 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( Contact DomainName HashRef );
+use WWW::eNom::Types qw( Contact DomainName HashRef Str );
 
 use WWW::eNom::Contact;
 
+use Data::Util qw( is_string );
 use Try::Tiny;
 use Carp;
 
@@ -49,20 +50,19 @@ sub get_contacts_by_domain_name {
         }
 
         my $billing_party_id = $response->{GetContacts}{Billing}{BillingPartyID};
+        my $billing_party_contact = WWW::eNom::Contact->construct_from_response(
+            $self->_extract_common_contact_format(
+                contact_type         => 'Billing',
+                raw_contact_response => $response->{GetContacts}{Billing},
+            )
+        );
 
         my $contacts;
         for my $contact_type ( keys %{ $ENOM_CONTACT_TYPE_MAPPING } ) {
-            my $raw_contact_response = $response->{GetContacts}{$contact_type};
-
-            my $common_contact_response;
-            for my $field ( keys %{ $raw_contact_response } ) {
-                if( $field !~ m/$contact_type/ ) {
-                    next;
-                }
-
-                $common_contact_response->{ substr( $field, length( $contact_type ) ) } =
-                    $raw_contact_response->{ $field } // { };
-            }
+            my $common_contact_response = $self->_extract_common_contact_format(
+                contact_type         => $contact_type,
+                raw_contact_response => $response->{GetContacts}{$contact_type},
+            );
 
             # If no other contact has been provided then MY information (the reseller)
             # is used.  Treat this as no info.
@@ -78,8 +78,16 @@ sub get_contacts_by_domain_name {
         # it with the registrant contact data.
         for my $contact_type ( values %{ $ENOM_CONTACT_TYPE_MAPPING } ) {
             if( !exists $contacts->{ $contact_type } ) {
-                $contacts->{ $contact_type }  = $contacts->{registrant_contact};
-                # TODO: Save this contact back, a sort of just in time repair
+                # Do I have any other contacts that I can use?
+                for my $replacement_contact_type ( grep { $_ ne $contact_type } ( values %{ $ENOM_CONTACT_TYPE_MAPPING } ) ) {
+                    if( exists $contacts->{$replacement_contact_type} ) {
+                        $contacts->{ $contact_type } = $contacts->{ $replacement_contact_type };
+                        last;
+                    }
+                }
+
+                # If I didn't find one, begrugingly use the billing one
+                $contacts->{ $contact_type } //= $billing_party_contact;
             }
         }
 
@@ -88,6 +96,38 @@ sub get_contacts_by_domain_name {
     catch {
         croak $_;
     }
+}
+
+sub _extract_common_contact_format {
+    my $self     = shift;
+    my ( %args ) = validated_hash(
+        \@_,
+        contact_type         => { isa => Str },
+        raw_contact_response => { isa => HashRef },
+    );
+
+    my $common_contact_response;
+    for my $field ( keys %{ $args{raw_contact_response} } ) {
+        if( $field !~ m/${\( $args{contact_type} )}/ ) {
+            next;
+        }
+
+        # If the value is not a string then consider it undefined
+        $common_contact_response->{ substr( $field, length( $args{contact_type} ) ) } =
+            is_string( $args{raw_contact_response}->{ $field } ) ? $args{raw_contact_response}->{ $field } : undef;
+    }
+
+    # Try harder to create a valid contact for the Billing contact (the Reseller)
+    # We do this since if we have no other (valid) contacts we can't build the domain,
+    # better to have something rather than nothing
+    if( $args{contact_type} eq 'Billing' ) {
+        if( $common_contact_response->{OrganizationName} ) {
+            $common_contact_response->{JobTitle} //= 'Reseller';
+            $common_contact_response->{Fax}      //= $common_contact_response->{Phone};
+        }
+    }
+
+    return $common_contact_response;
 }
 
 sub update_contacts_for_domain_name {
