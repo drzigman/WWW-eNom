@@ -1,5 +1,10 @@
 Revision history for WWW-eNom
 
+v2.3.0    2016-10-05
+    - Better handling of Reseller information used for Contacts
+    - If a domain is not explictly unverified, count is as verified (due to
+      how eNom responds, we have to assume "no news is good news").
+
 v2.2.0    2016-10-02
     - Implemented method to email a domain's EPP Key to the Registrant
       Contact assoicated with the domain.
