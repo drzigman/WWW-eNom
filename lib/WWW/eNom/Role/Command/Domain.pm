@@ -174,6 +174,10 @@ sub get_domain_name_servers_by_name {
                 croak 'Domain not found in your account';
             }
 
+            elsif( grep { $_ eq 'This domain name is expired and cannot be updated' } @{ $response->{errors} } ) {
+                return [ ];
+            }
+
             croak 'Unknown error';
         }
 

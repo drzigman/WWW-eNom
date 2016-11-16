@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More;
 use Test::Exception;
+use Test::MockModule;
 use String::Random qw( random_string );
 
 use FindBin;
@@ -41,6 +42,25 @@ subtest 'Get Nameservers - Valid Domain' => sub {
     } 'Lives through getting nameservers';
 
     is_deeply( $retrieved_nameservers, $nameservers, 'Correct nameservers' );
+};
+
+subtest 'Get Nameservers - Reactivation Period Domain' => sub {
+    my $api = create_api();
+
+    my $mocked_enom = Test::MockModule->new('WWW::eNom');
+    $mocked_enom->mock('submit', sub {
+        return {
+            ErrCount => 1,
+            errors   => [ 'This domain name is expired and cannot be updated' ],
+        };
+    });
+
+    my $retrieved_nameservers;
+    lives_ok {
+        $retrieved_nameservers = $api->get_domain_name_servers_by_name( 'mocked-call.com' );
+    } 'Lives through getting nameservers';
+
+    is_deeply( $retrieved_nameservers, [ ], 'Correct nameservers' );
 };
 
 done_testing;
