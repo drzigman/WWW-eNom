@@ -1,5 +1,9 @@
 Revision history for WWW-eNom
 
+v2.4.0    2016-11-17
+    - If the domain is expired, use [ ] for the nameservers since eNom
+      refuses to give them to you
+
 v2.3.0    2016-10-05
     - Better handling of Reseller information used for Contacts
     - If a domain is not explictly unverified, count is as verified (due to
