@@ -1,5 +1,10 @@
 Revision history for WWW-eNom
 
+v2.4.1   2016-11-18
+    - If the domain is expired, use false for the autorenew status since
+      eNom refuses to give it to you (and if it's expired, it's pretty
+      obvious that auto renew isn't on)
+
 v2.4.0    2016-11-17
     - If the domain is expired, use [ ] for the nameservers since eNom
       refuses to give them to you
