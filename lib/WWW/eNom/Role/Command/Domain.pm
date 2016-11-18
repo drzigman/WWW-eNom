@@ -262,6 +262,9 @@ sub get_is_domain_auto_renew_by_name {
             if( grep { $_ eq 'Domain name not found' } @{ $response->{errors} } ) {
                 croak 'Domain not found in your account';
             }
+            elsif( grep { $_ eq 'This domain name is expired and cannot be updated' } @{ $response->{errors} } ) {
+                return !!0;
+            }
 
             croak 'Unknown error';
         }
