@@ -8,9 +8,10 @@ use MooseX::StrictConstructor;
 use MooseX::Params::Validate;
 use namespace::autoclean;
 
-use WWW::eNom::Types qw( Bool Contact DateTime DomainName DomainNames HashRef PositiveInt Str PrivateNameServers );
+use WWW::eNom::Types qw( Bool Contact DateTime DomainName DomainNames HashRef IRTPDetail PositiveInt Str PrivateNameServers );
 
 use WWW::eNom::Contact;
+use WWW::eNom::IRTPDetail;
 
 use DateTime;
 use DateTime::Format::DateParse;
@@ -112,6 +113,12 @@ has 'private_nameservers' => (
     predicate => 'has_private_nameservers',
 );
 
+has 'irtp_detail' => (
+    is        => 'ro',
+    isa       => IRTPDetail,
+    predicate => 'has_irtp_detail',
+);
+
 with 'WWW::eNom::Role::ParseDomain';
 
 sub construct_from_response {
@@ -139,6 +146,13 @@ sub construct_from_response {
             $is_private          = ( $args{domain_info}{services}{entry}{wpps}{service}{content} == 1120 );
         }
 
+        my $irtp_detail;
+        if( $args{contacts}{is_pending_irtp} ) {
+            $irtp_detail = WWW::eNom::IRTPDetail->construct_from_response(
+                $args{domain_info}{services}{entry}{irtpsettings}{irtpsetting}
+            );
+        }
+
         return $self->new({
             id                  => $args{domain_info}{domainname}{domainnameid},
             name                => $args{domain_info}{domainname}{content},
@@ -154,6 +168,7 @@ sub construct_from_response {
             admin_contact       => $args{contacts}{admin_contact},
             technical_contact   => $args{contacts}{technical_contact},
             billing_contact     => $args{contacts}{billing_contact},
+            defined $irtp_detail       ? ( irtp_detail         => $irtp_detail               ) : ( ),
             $args{private_nameservers} ? ( private_nameservers => $args{private_nameservers} ) : ( ),
         });
     }
@@ -304,6 +319,10 @@ B<NOTE> L<eNom|https://www.eNom.com> actually calls this the B<AuxBilling> conta
 An ArrayRef of L<WWW::eNom::PrivateNameServer> objects that comprise the private nameservers for this domain, provides a predicate of has_private_nameservers.
 
 B<NOTE> Due to limitations of L<eNom|https://www.enom.com>'s API, all private nameservers B<*MUST*> be used as authoritative nameservers (i.e., they must also appear in the L</ns> attribute).  See L<WWW::eNom::Role::Command::Domain::PrivateNameServer/LIMITATIONS> for more information about this and other limitations.
+
+=head2 irtp_detail
+
+In the event of a recent change in registrant contact, the irtp_detail attribute will be populated with an instance of L<WWW::eNom::IRTPDetail> that contains additional IRTP related information about this domain.  If there is no recent registrant contact change then no value will be provided for the irtp_detail.  Offers a predicate of has_irtp_detail.
 
 =head1 METHODS
 
