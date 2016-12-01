@@ -52,7 +52,7 @@ sub _build_uri {
     my $self = shift;
 
     my $subdomain = $self->test ? 'resellertest' : 'reseller';
-    return URI->new("http://$subdomain.enom.com/interface.asp");
+    return URI->new("https://$subdomain.enom.com/interface.asp");
 }
 
 1;
@@ -258,6 +258,10 @@ Request to transfer a domain.
 =head2 L<WWW::eNom::PrivateNameServer>
 
 Private nameservers.
+
+=head2 L<WWW::eNom::IRTPDetail>
+
+Details about an in progress IRTP Verification (due to a change in registrant contact).  The IRTP Process is rather complex and eNom acts as a Designated Agent, see L<WWW::eNom::IRTPDetail> for more information about this.
 
 =head1 WITH
 

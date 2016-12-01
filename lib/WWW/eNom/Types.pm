@@ -46,6 +46,7 @@ use MooseX::Types -declare => [qw(
     DomainAvailabilities
     DomainRegistration
     DomainTransfer
+    IRTPDetail
     PhoneNumber
     PrivateNameServer
     PrivateNameServers
@@ -132,6 +133,8 @@ subtype IPv6s, as ArrayRef[IPv6];
 
 subtype IP, as IPv4 | IPv6;
 subtype IPs, as ArrayRef[IP];
+
+class_type IRTPDetail, { class => 'WWW::eNom::IRTPDetail' };
 
 1;
 
