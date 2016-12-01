@@ -91,6 +91,6 @@ Boolean indicating if the domain will have a 60 day transfer lock imposed upon i
         $domain_info_response->{GetDomainInfo}{services}{entry}{irtpsettings}{irtpsetting}
     );
 
-Constructs an instance of L<WWW::eNom::IRTPDetail> from the irtpsettings details of L<eNom's|http://www.enom.com> API L<GetDomainInfo|https://www.enom.com/api/API%20topics/api_GetDomainInfo.htm> response.  There really isn't ever a reason for a consumer to call this method directly.
+Constructs an instance of L<WWW::eNom::IRTPDetail> from the irtpsettings details of L<eNom's|http://www.enom.com> API L<GetDomainInfo|https://www.enom.com/api/API%20topics/api_GetDomainInfo.htm> response.  There really is not ever a reason for a consumer to call this method directly.
 
 =cut
