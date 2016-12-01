@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use MooseX::Params::Validate;
 
-use WWW::eNom::Types qw( Contact DomainName HashRef Str );
+use WWW::eNom::Types qw( Bool Contact DomainName HashRef Str );
 
 use WWW::eNom::Contact;
 
@@ -91,6 +91,8 @@ sub get_contacts_by_domain_name {
             }
         }
 
+        $contacts->{is_pending_irtp} = $response->{GetContacts}{PendingVerification} eq 'True';
+
         return $contacts;
     }
     catch {
@@ -139,15 +141,20 @@ sub update_contacts_for_domain_name {
         admin_contact       => { isa => Contact, optional => 1 },
         technical_contact   => { isa => Contact, optional => 1 },
         billing_contact     => { isa => Contact, optional => 1 },
+        is_transfer_locked  => { isa => Bool,    default  => 1 },
     );
 
     try {
+        # The not for is_transfer_locked is because eNom treats this as opt out
+        # while I'm treating the input as just if it should lock or not
+
         # Replace all contacts at once
         if(    ( scalar grep { exists $args{$_} && defined $args{$_} } values %{ $ENOM_CONTACT_TYPE_MAPPING } )
             == ( scalar values %{ $ENOM_CONTACT_TYPE_MAPPING } ) ) {
             $self->_update_contacts({
                 payload => {
-                    Domain => $args{domain_name},
+                    Domain     => $args{domain_name},
+                    IRTPOptOut => ( !$args{is_transfer_locked} ? 'true' : 'false' ),
                     %{ $args{registrant_contact}->construct_creation_request('Registrant') },
                     %{ $args{admin_contact}->construct_creation_request('Admin')           },
                     %{ $args{technical_contact}->construct_creation_request('Tech')        },
@@ -165,6 +172,7 @@ sub update_contacts_for_domain_name {
                 $self->_update_contacts({
                     payload => {
                         Domain      => $args{domain_name},
+                        IRTPOptOut  => ( !$args{is_transfer_locked} ? 'True' : 'False' ),
                         ContactType => uc $CONTACT_TYPE_ENOM_MAPPING->{ $contact_type },
                         %{ $args{ $contact_type }->construct_creation_request( $CONTACT_TYPE_ENOM_MAPPING->{ $contact_type } ) },
                     }
@@ -232,6 +240,7 @@ WWW::eNom::Role::Command::Contact - Contact Related Operations
 
     my $updated_contacts = $api->update_contacts_for_domain_name(
         domain_name        => 'drzigman.com',
+        is_transfer_locked => 1,                         # Optional, Defaults to truthy
         registrant_contact => $new_registrant_contact,   # Optional
         admin_contact      => $new_admin_contact,        # Optional
         technical_contact  => $new_technical_contact,    # Optional
@@ -280,6 +289,7 @@ Each of these keys point to a value which is an instance of L<WWW::eNom::Contact
 
     my $updated_contacts = $api->update_contacts_for_domain_name(
         domain_name        => 'drzigman.com',
+        is_transfer_locked => 1,                         # Optional, Defaults to truthy
         registrant_contact => $new_registrant_contact,   # Optional
         admin_contact      => $new_admin_contact,        # Optional
         technical_contact  => $new_technical_contact,    # Optional
@@ -288,6 +298,8 @@ Each of these keys point to a value which is an instance of L<WWW::eNom::Contact
 
 Abstraction of the L<Contacts|https://www.enom.com/api/API%20topics/api_Contacts.htm> eNom API Call.  Given a FQDN and new contacts to use, updates the specified contacts to match those provided.  Returned is a HashRef of Contacts (see L<get_contacts_by_domain_name> for response format).
 
-One interesting thing about this method is that you only need specify the contacts you wish to update.  If you wish to update registrant, admin, technical, and billing great!  Go for it and include all of them in one call.  If you wish to update only a subset of the contacts (1, 2 or 3 of them) you should pass only the contacts to be updated.
+AN interesting thing about this method is that you only need specify the contacts you wish to update.  If you wish to update registrant, admin, technical, and billing great!  Go for it and include all of them in one call.  If you wish to update only a subset of the contacts (1, 2 or 3 of them) you should pass only the contacts to be updated.
+
+Moreover, when making changes to the registrant_contact, per the 2016-12-01 L<ICANN Inter Registrar Transfer Policy|https://www.icann.org/resources/pages/transfer-policy-2016-06-01-en>, a 60 day transfer lock is imposed on the domain unless the requester explicitly states that they B<DO NOT> wish to have this transfer lock imposed.  By default the domain will be locked, however, if you pass a falsey value for is_transfer_locked that lock will not be applied.
 
 =cut

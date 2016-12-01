@@ -60,6 +60,7 @@ subtest 'Get Contacts For Domain With All Contact Defined' => sub {
 
     for my $contact_type (keys %{ $retrieved_contacts } ) {
         subtest "$contact_type" => sub {
+            delete $retrieved_contacts->{is_pending_irtp};
             is_deeply( $retrieved_contacts->{ $contact_type }, $contacts->{ $contact_type }, "Correct $contact_type" );
         };
     }
@@ -106,6 +107,7 @@ subtest 'Get Contacts For Domain Missing Contact' => sub {
         $retrieved_contacts = $api->get_contacts_by_domain_name( $domain_request->name );
     } 'Lives through retrieving contacts';
 
+    delete $retrieved_contacts->{is_pending_irtp};
     for my $contact_type (keys %{ $retrieved_contacts } ) {
         subtest "$contact_type" => sub {
             is_deeply( $retrieved_contacts->{ $contact_type }, $contact, "Correct $contact_type" );

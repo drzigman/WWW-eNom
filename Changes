@@ -1,5 +1,9 @@
 Revision history for WWW-eNom
 
+v2.5.0   2016-11-30
+    - Implemented Support for eNom's DA based IRTP Implementation, introduced
+      WWW::eNom::IRTPDetail
+
 v2.4.1   2016-11-18
     - If the domain is expired, use false for the autorenew status since
       eNom refuses to give it to you (and if it's expired, it's pretty

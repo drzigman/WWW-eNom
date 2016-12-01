@@ -60,6 +60,7 @@ Readonly our $NOT_MY_DOMAIN => WWW::eNom::Domain->new(
 use Exporter 'import';
 our @EXPORT_OK = qw(
     create_domain create_transfer
+    retrieve_domain_with_cron_delay
     $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN
 );
 
@@ -82,7 +83,7 @@ sub create_domain {
     $args{ns}                 //= [ 'ns1.enom.com', 'ns2.enom.com' ];
     $args{is_locked}          //= 1;
     $args{years}              //= 1;
-    $args{registrant_contact} //= create_contact();
+    $args{registrant_contact} //= create_contact( first_name => 'Before', last_name => 'Change' );
     $args{admin_contact}      //= create_contact();
     $args{technical_contact}  //= create_contact();
     $args{billing_contact}    //= create_contact();
@@ -153,6 +154,29 @@ sub create_transfer {
     };
 
     return $transfer;
+}
+
+sub retrieve_domain_with_cron_delay {
+    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+
+    my $api = create_api();
+
+    note('Waiting for eNom to Process Contact Change...');
+
+    sleep 10;
+
+    for my $seconds_waited ( 1 .. 60 ) {
+        if( DateTime->now->second > 5 && DateTime->now->second < 10 ) {
+            return $api->get_domain_by_name( $domain_name );
+        }
+        else {
+            if( $seconds_waited % 5 == 0 ) {
+                note("Waited $seconds_waited seconds - " . DateTime->now->datetime );
+            }
+
+            sleep 1;
+        }
+    }
 }
 
 1;
