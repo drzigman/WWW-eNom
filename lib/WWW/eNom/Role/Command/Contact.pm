@@ -300,6 +300,6 @@ Abstraction of the L<Contacts|https://www.enom.com/api/API%20topics/api_Contacts
 
 AN interesting thing about this method is that you only need specify the contacts you wish to update.  If you wish to update registrant, admin, technical, and billing great!  Go for it and include all of them in one call.  If you wish to update only a subset of the contacts (1, 2 or 3 of them) you should pass only the contacts to be updated.
 
-Moreover, when making changes to the registrant_contact, per the 2016-12-01 L<ICANN Inter Registrar Transfer Policy|https://www.icann.org/resources/pages/transfer-policy-2016-06-01-en>, a 60 day transfer lock is imposed on the domain unless the requestor explictly states that they B<DO NOT> wish to have this transfer lock imposed.  By default the domain will be locked, however, if you pass a falsey value for is_transfer_locked that lock will not be applied.
+Moreover, when making changes to the registrant_contact, per the 2016-12-01 L<ICANN Inter Registrar Transfer Policy|https://www.icann.org/resources/pages/transfer-policy-2016-06-01-en>, a 60 day transfer lock is imposed on the domain unless the requester explicitly states that they B<DO NOT> wish to have this transfer lock imposed.  By default the domain will be locked, however, if you pass a falsey value for is_transfer_locked that lock will not be applied.
 
 =cut
