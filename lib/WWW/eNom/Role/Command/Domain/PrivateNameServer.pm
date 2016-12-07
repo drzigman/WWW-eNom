@@ -10,6 +10,8 @@ use WWW::eNom::Types qw( Domain DomainName IP PrivateNameServer );
 
 use WWW::eNom::PrivateNameServer;
 
+use Data::Util qw( is_string is_hash_ref is_array_ref );
+
 use Try::Tiny;
 use Carp;
 
@@ -126,7 +128,6 @@ sub update_private_nameserver_ip {
     };
 }
 
-
 sub retrieve_private_nameserver_by_name {
     my $self = shift;
     my ( $name ) = pos_validated_list( \@_, { isa => DomainName } );
@@ -156,9 +157,23 @@ sub retrieve_private_nameserver_by_name {
             croak 'Response did not contain private nameserver data';
         }
 
+        my $ip;
+        # Single IP Address
+        if( is_string( $response->{CheckNsStatus}{ipaddress} ) ) {
+            $ip = $response->{CheckNsStatus}{ipaddress};
+        }
+        # Multiple IP Addresses, we only use the first one.
+        elsif( is_hash_ref( $response->{CheckNsStatus}{ipaddress} )
+            && is_array_ref( $response->{CheckNsStatus}{ipaddress}{ipaddress} ) ) {
+            $ip = $response->{CheckNsStatus}{ipaddress}{ipaddress}->[0];
+        }
+        else {
+            croak 'Unable to determine private nameserver ip address';
+        }
+
         return WWW::eNom::PrivateNameServer->new(
             name => $response->{CheckNsStatus}{name},
-            ip   => $response->{CheckNsStatus}{ipaddress},
+            ip   => $ip,
         );
     }
     catch {
@@ -318,6 +333,8 @@ This method will croak if the domain is owned by someone else, if it's not regis
 Abstraction of the L<CheckNSStatus|https://www.enom.com/api/API%20topics/api_CheckNSStatus.htm> eNom API Call.  Given a FQDN that is the hostname of a private nameserver, returns an instance of L<WWW::eNom::PrivateNameServer> that describes the registered nameserver.
 
 This method will croak if the domain is owned by someone else, if it's not registered, or if private nameserver does not exist.
+
+B<NOTE> At some point in L<eNom|https://enom.com>'s past it was possible to associate multiple ip addresses with a private nameservers.  This is no longer possible but very old private nameservers when retrieved from the API will show both IPs.  As a workaround, only the first IP address will be populated into the instance of L<WWW::eNom::PrivateNameServer> returned.
 
 =head2 delete_private_nameserver
 
