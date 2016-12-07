@@ -334,7 +334,7 @@ Abstraction of the L<CheckNSStatus|https://www.enom.com/api/API%20topics/api_Che
 
 This method will croak if the domain is owned by someone else, if it's not registered, or if private nameserver does not exist.
 
-B<NOTE> At some point in L<eNom|https://enom.com>'s past it was possible to assoicate multiple ip addresses with a private nameservers.  This is no longer possible but very old private nameservers when retrieved from the API will show both IPs.  As a workaround, only the first IP address will be populated into the instance of L<WWW::eNom::PrivateNameServer> returned.
+B<NOTE> At some point in L<eNom|https://enom.com>'s past it was possible to associate multiple ip addresses with a private nameservers.  This is no longer possible but very old private nameservers when retrieved from the API will show both IPs.  As a workaround, only the first IP address will be populated into the instance of L<WWW::eNom::PrivateNameServer> returned.
 
 =head2 delete_private_nameserver
 
