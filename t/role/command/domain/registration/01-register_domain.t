@@ -44,7 +44,7 @@ subtest 'Register Available Domain - No Privacy, Locking, Auto Renew' => sub {
         like( $domain->id, qr/^\d+$/, 'id looks numeric' );
         cmp_ok( $domain->name,                 'eq', $request->name,       'Correct name' );
         cmp_ok( $domain->status,               'eq', 'Registered',         'Correct status' );
-        cmp_ok( $domain->verification_status,  'eq', 'Pending Suspension', 'Correct verification_status' );
+        ok( ( grep { $domain->verification_status eq $_ } ( 'Pending Suspension', 'Verified' ) ), 'Correct verification_status' );
         cmp_ok( $domain->is_auto_renew,        '==', 0,                    'Correct is_auto_renew' );
         cmp_ok( $domain->is_locked,            '==', 0,                    'Correct is_locked' );
         cmp_ok( $domain->is_private,           '==', 0,                    'Correct is_private' );
@@ -89,7 +89,7 @@ subtest 'Register Available Domain - With Privacy, Locking, Auto Renew' => sub {
         like( $domain->id, qr/^\d+$/, 'id looks numeric' );
         cmp_ok( $domain->name,                 'eq', $request->name,       'Correct name' );
         cmp_ok( $domain->status,               'eq', 'Registered',         'Correct status' );
-        cmp_ok( $domain->verification_status,  'eq', 'Pending Suspension', 'Correct verification_status' );
+        ok( ( grep { $domain->verification_status eq $_ } ( 'Pending Suspension', 'Verified' ) ), 'Correct verification_status' );
         cmp_ok( $domain->is_auto_renew,        '==', 1,                    'Correct is_auto_renew' );
         cmp_ok( $domain->is_locked,            '==', 1,                    'Correct is_locked' );
         cmp_ok( $domain->is_private,           '==', 1,                    'Correct is_private' );
