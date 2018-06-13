@@ -66,7 +66,7 @@ sub get_contacts_by_domain_name {
 
             # If no other contact has been provided then MY information (the reseller)
             # is used.  Treat this as no info.
-            if( $common_contact_response->{PartyID} eq $billing_party_id ) {
+            if( defined $common_contact_response->{PartyID} && $common_contact_response->{PartyID} eq $billing_party_id ) {
                 next;
             }
 
