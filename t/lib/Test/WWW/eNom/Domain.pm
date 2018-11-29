@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More;
 use Test::Exception;
+use Test::MockModule;
 use MooseX::Params::Validate;
 use String::Random qw( random_string );
 
@@ -12,8 +13,8 @@ use WWW::eNom::Types qw( Bool Contact DomainName DomainNames PositiveInt Str Tra
 
 use FindBin;
 use lib "$FindBin::Bin/../../../../lib";
-use Test::WWW::eNom qw( create_api );
-use Test::WWW::eNom::Contact qw( create_contact $DEFAULT_CONTACT );
+use Test::WWW::eNom qw( create_api mock_response );
+use Test::WWW::eNom::Contact qw( create_contact mock_get_contacts $DEFAULT_CONTACT $RAW_PROTECTED_CONTACT );
 
 use WWW::eNom::Domain;
 use WWW::eNom::DomainTransfer;
@@ -21,6 +22,7 @@ use WWW::eNom::DomainRequest::Registration;
 use WWW::eNom::DomainRequest::Transfer;
 
 use DateTime;
+use Mozilla::PublicSuffix qw( public_suffix );
 
 use Readonly;
 Readonly our $UNREGISTERED_DOMAIN => WWW::eNom::Domain->new(
@@ -61,6 +63,15 @@ use Exporter 'import';
 our @EXPORT_OK = qw(
     create_domain create_transfer
     retrieve_domain_with_cron_delay
+    mock_domain_registration
+
+    mock_purchase
+    mock_get_domain_info
+    mock_get_dns
+    mock_get_reg_lock
+    mock_get_whois_contact
+    mock_get_renew
+    mock_purchase_services
     $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN
 );
 
@@ -177,6 +188,242 @@ sub retrieve_domain_with_cron_delay {
             sleep 1;
         }
     }
+}
+
+sub mock_domain_registration {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api => { isa => 'Test::MockModule', optional => 1 },
+        request    => { isa => 'WWW::eNom::DomainRequest::Registration' }
+    );
+
+    my $mocked_api = $args{mocked_api} // Test::MockModule->new('WWW::eNom');
+
+    mock_purchase(
+        mocked_api => $mocked_api,
+        purchase   => $args{request}
+    );
+
+    mock_purchase_services( mocked_api => $mocked_api );
+
+    mock_get_domain_info(
+        mocked_api      => $mocked_api,
+        domain_name     => $args{request}->name,
+        expiration_date => DateTime->now( time_zone => 'UTC' )->add( years => 1 ),
+        is_private      => $args{request}->is_private,
+    );
+
+    mock_get_dns(
+        mocked_api  => $mocked_api,
+        nameservers => $args{request}->ns,
+    );
+
+    mock_get_reg_lock(
+        mocked_api => $mocked_api,
+        is_locked  => $args{request}->is_locked,
+    );
+
+    mock_get_renew(
+        mocked_api    => $mocked_api,
+        is_auto_renew => $args{request}->is_auto_renew,
+    );
+
+    mock_get_contacts(
+        mocked_api         => $mocked_api,
+        registrant_contact => $args{request}->registrant_contact,
+        admin_contact      => $args{request}->admin_contact,
+        technical_contact  => $args{request}->technical_contact,
+        billing_contact    => $args{request}->billing_contact,
+    );
+
+    mock_get_whois_contact(
+        mocked_api   => $mocked_api,
+        created_date => DateTime->now,
+    );
+
+    return $mocked_api;
+}
+
+sub mock_purchase {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api => { isa => 'Test::MockModule', optional => 1 },
+        purchase   => { isa => 'WWW::eNom::DomainRequest::Registration' },
+    );
+
+    return mock_response(
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
+        method   => 'Purchase',
+        response => {
+            OrderID      => '42',
+            IsLockable   => 'True',
+            ErrCount     => '0',
+            errors       => undef,
+            RRPCode      => '200',
+            RRPText      => 'Command completed successfully - 42',
+            OrderStatus  => 'Success',
+            TotalCharged => '8.95',
+            DomainInfo   => {
+                RegistryExpDate    => DateTime->now->add( years => $args{purchase}->years )->strftime('%F %T') . '.000',
+                RegistryCreateDate => DateTime->now->strftime('%F %T') . '.000',
+            },
+            RegistrantPartyID => {},
+            Contacts          => {
+                Registrant => $RAW_PROTECTED_CONTACT,
+                Tech       => $RAW_PROTECTED_CONTACT,
+                Admin      => $RAW_PROTECTED_CONTACT,
+                Billing    => $RAW_PROTECTED_CONTACT,
+            },
+        }
+    );
+}
+
+sub mock_get_domain_info {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api      => { isa => 'Test::MockModule', optional => 1 },
+        domain_name     => { isa => 'Str' },
+        expiration_date => { isa => 'DateTime' },
+        is_private      => { isa => 'Bool' },
+    );
+
+    my $sld = public_suffix( $args{domain_name} );
+    my $tld = substr( $args{domain_name}, 0, length( $args{domain_name} ) - ( length( $sld ) + 1 ) );
+
+    return mock_response(
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
+        method   => 'GetDomainInfo',
+        response => {
+            'ErrCount'      => '0',
+            'errors'        => undef,
+            'GetDomainInfo' => {
+                'domainname' => {
+                    'domainnameid' => '42',
+                    'sld'          => $sld,
+                    'tld'          => $tld,
+                    'content'      => $args{domain_name},
+                },
+                'status' => {
+                    'registrationstatus' => 'Registered',
+                    'expiration'         => $args{expiration_date}->strftime( '%m/%d/%Y %r' ),
+                },
+                'services' => {
+                    'entry' => {
+                        'raasettings'  => {},
+                        'irtpsettings' => {
+                            'irtpsetting' => {
+                                'optout'              => 'False',
+                                'transferlock'        => 'False',
+                                'icanncompliant'      => 'True',
+                                'transferlockexpdate' => {},
+                            },
+                        },
+                        'wpps' => {
+                            'service' => {
+                                'changable' => '1',
+                                'content'   => $args{is_private} ? '1120' : '1123',
+                            }
+                        },
+                    }
+                },
+            },
+        },
+    );
+}
+
+sub mock_get_dns {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api  => { isa => 'Test::MockModule', optional => 1 },
+        nameservers => { isa => 'ArrayRef', optional => 1 },
+    );
+
+    my $nameservers = $args{nameservers} // [
+        'ns1.enom.com',
+        'ns2.enom.com'
+    ];
+
+    return mock_response(
+        method   => 'GetDNS',
+        response => {
+            'ErrCount' => '0',
+            'errors'   => undef,
+            'dns'      => $nameservers,
+        },
+    );
+}
+
+sub mock_get_reg_lock {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api => { isa => 'Test::MockModule', optional => 1 },
+        is_locked  => { isa => 'Bool', default => 1 },
+    );
+
+    return mock_response(
+        method   => 'GetRegLock',
+        response => {
+            'ErrCount' => '0',
+            'errors'   => undef,
+            'reg-lock' => $args{is_locked} ? '1' : '0',
+        },
+    );
+}
+
+sub mock_get_whois_contact {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api   => { isa => 'Test::MockModule', optional => 1 },
+        created_date => { isa => 'DateTime', optional => 1 },
+    );
+
+    my $created_date = $args{created_date} // DateTime->now;
+
+    return mock_response(
+        method   => 'GetWhoisContact',
+        response => {
+            'ErrCount'         => '0',
+            'errors'           => undef,
+            'GetWhoisContacts' => {
+                'rrp-info' => {
+                        'created-date' =>  $created_date->datetime . '.00Z',
+                },
+            }
+        }
+    );
+}
+
+sub mock_get_renew {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api    => { isa => 'Test::MockModule', optional => 1 },
+        is_auto_renew => { isa => 'Bool', default => 1 },
+    );
+
+    return mock_response(
+        method => 'GetRenew',
+        response => {
+            'ErrCount' => '0',
+            'errors'   => undef,
+            'auto-renew' => $args{is_auto_renew} ? '1' : '0',
+        },
+    );
+}
+
+sub mock_purchase_services {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api    => { isa => 'Test::MockModule', optional => 1 },
+    );
+
+    return mock_response(
+        method => 'PurchaseServices',
+        response => {
+            'ErrCount' => '0',
+            'errors'   => undef,
+            OrderID    => 42,
+        },
+    );
 }
 
 1;
