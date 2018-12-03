@@ -99,11 +99,12 @@ sub create_contact {
 sub mock_get_contacts {
     my ( %args ) = validated_hash(
         \@_,
-        mocked_api         => { isa => 'Test::MockModule', optional => 1 },
-        registrant_contact => { isa => 'WWW::eNom::Contact', optional => 1 },
-        admin_contact      => { isa => 'WWW::eNom::Contact', optional => 1 },
-        technical_contact  => { isa => 'WWW::eNom::Contact', optional => 1 },
-        billing_contact    => { isa => 'WWW::eNom::Contact', optional => 1 },
+        mocked_api              => { isa => 'Test::MockModule',   optional => 1 },
+        is_pending_verification => { isa => 'Bool',               default  => 0 },
+        registrant_contact      => { isa => 'WWW::eNom::Contact', optional => 1 },
+        admin_contact           => { isa => 'WWW::eNom::Contact', optional => 1 },
+        technical_contact       => { isa => 'WWW::eNom::Contact', optional => 1 },
+        billing_contact         => { isa => 'WWW::eNom::Contact', optional => 1 },
     );
 
     my $registrant_contact = $args{registrant_contact} // create_contact();
@@ -118,7 +119,7 @@ sub mock_get_contacts {
             'ErrCount'    => '0',
             'errors'      => undef,
             'GetContacts' => {
-                'PendingVerification' => 'False',
+                'PendingVerification' => ( $args{is_pending_verification} ? 'True' : 'False' ),
                 'Billing' => {
                     'BillingPartyID' => '{94fa74a9-7a03-e311-8a25-bc305bf0feec}',
                     %{ $billing_contact->construct_creation_request( 'Billing' ) },

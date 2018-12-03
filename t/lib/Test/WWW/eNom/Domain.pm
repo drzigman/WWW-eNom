@@ -64,6 +64,7 @@ our @EXPORT_OK = qw(
     create_domain create_transfer
     retrieve_domain_with_cron_delay
     mock_domain_registration
+    mock_domain_retrieval
 
     mock_purchase
     mock_get_domain_info
@@ -108,9 +109,13 @@ sub create_domain {
             $request = WWW::eNom::DomainRequest::Registration->new( %args );
         } 'Lives through creating request object';
 
+        my $mocked_api = mock_domain_registration( request => $request );
+
         lives_ok {
             $domain = $api->register_domain( request => $request );
         } 'Lives through domain registration';
+
+        $mocked_api->unmock_all();
 
         note( 'Domain ID: ' . $domain->id );
         note( 'Domain Name: ' . $domain->name );
@@ -168,12 +173,13 @@ sub create_transfer {
 }
 
 sub retrieve_domain_with_cron_delay {
-    my ( $domain_name ) = pos_validated_list( \@_, { isa => DomainName } );
+    my ( $api, $domain_name ) = pos_validated_list( \@_, { isa => 'WWW::eNom' }, { isa => DomainName } );
 
-    my $api = create_api();
+    if( $ENV{USE_MOCK} ) {
+        return $api->get_domain_by_name( $domain_name );
+    }
 
     note('Waiting for eNom to Process Contact Change...');
-
     sleep 10;
 
     for my $seconds_waited ( 1 .. 60 ) {
@@ -206,34 +212,73 @@ sub mock_domain_registration {
 
     mock_purchase_services( mocked_api => $mocked_api );
 
-    mock_get_domain_info(
-        mocked_api      => $mocked_api,
-        domain_name     => $args{request}->name,
-        expiration_date => DateTime->now( time_zone => 'UTC' )->add( years => 1 ),
-        is_private      => $args{request}->is_private,
-    );
-
-    mock_get_dns(
-        mocked_api  => $mocked_api,
-        nameservers => $args{request}->ns,
-    );
-
-    mock_get_reg_lock(
+    mock_domain_retrieval(
         mocked_api => $mocked_api,
-        is_locked  => $args{request}->is_locked,
-    );
-
-    mock_get_renew(
-        mocked_api    => $mocked_api,
-        is_auto_renew => $args{request}->is_auto_renew,
-    );
-
-    mock_get_contacts(
-        mocked_api         => $mocked_api,
+        name               => $args{request}->name,
+        is_private         => $args{request}->is_private,
+        is_locked          => $args{request}->is_locked,
+        is_auto_renew      => $args{request}->is_auto_renew,
+        nameservers        => $args{request}->ns,
         registrant_contact => $args{request}->registrant_contact,
         admin_contact      => $args{request}->admin_contact,
         technical_contact  => $args{request}->technical_contact,
         billing_contact    => $args{request}->billing_contact,
+    );
+
+    return $mocked_api;
+}
+
+sub mock_domain_retrieval {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api              => { isa => 'Test::MockModule',  optional => 1 },
+        name                    => { isa => 'Str' },
+        expiration_date         => { isa => 'DateTime',           optional => 1 },
+        is_private              => { isa => 'Bool',               default  => 0 },
+        is_locked               => { isa => 'Bool',               default  => 1 },
+        is_auto_renew           => { isa => 'Bool',               default  => 0 },
+        nameservers             => { isa => 'ArrayRef',           optional => 1 },
+        is_pending_verification => { isa => 'Bool',               default  => 0 },
+        registrant_contact      => { isa => 'WWW::eNom::Contact', optional => 1 },
+        admin_contact           => { isa => 'WWW::eNom::Contact', optional => 1 },
+        technical_contact       => { isa => 'WWW::eNom::Contact', optional => 1 },
+        billing_contact         => { isa => 'WWW::eNom::Contact', optional => 1 },
+    );
+
+    my $mocked_api = $args{mocked_api} // Test::MockModule->new('WWW::eNom');
+
+    mock_get_domain_info(
+        mocked_api      => $mocked_api,
+        domain_name     => $args{name},
+        expiration_date => defined $args{expiration_date}
+            ? ( $args{expiration_date} )
+            : ( DateTime->now( time_zone => 'UTC' )->add( years => 1 ) ),
+        is_private      => $args{is_private},
+        is_pending_verification => $args{is_pending_verification},
+    );
+
+    mock_get_dns(
+        mocked_api  => $mocked_api,
+        defined $args{nameservers} ? ( nameservers => $args{nameservers} ) : ( ),
+    );
+
+    mock_get_reg_lock(
+        mocked_api => $mocked_api,
+        is_locked  => $args{is_locked},
+    );
+
+    mock_get_renew(
+        mocked_api    => $mocked_api,
+        is_auto_renew => $args{is_auto_renew},
+    );
+
+    mock_get_contacts(
+        mocked_api              => $mocked_api,
+        is_pending_verification => $args{is_pending_verification},
+        $args{registrant_contact} ? ( registrant_contact      => $args{registrant_contact} ) : ( ),
+        $args{admin_contact}      ? ( admin_contact           => $args{admin_contact}      ) : ( ),
+        $args{technical_contact}  ? ( technical_contact       => $args{technical_contact}  ) : ( ),
+        $args{billing_contact}    ? ( billing_contact         => $args{billing_contact}    ) : ( ),
     );
 
     mock_get_whois_contact(
@@ -285,6 +330,7 @@ sub mock_get_domain_info {
         domain_name     => { isa => 'Str' },
         expiration_date => { isa => 'DateTime' },
         is_private      => { isa => 'Bool' },
+        is_pending_verification => { isa => 'Bool', default => 0 },
     );
 
     my $sld = public_suffix( $args{domain_name} );
@@ -313,7 +359,7 @@ sub mock_get_domain_info {
                         'irtpsettings' => {
                             'irtpsetting' => {
                                 'optout'              => 'False',
-                                'transferlock'        => 'False',
+                                'transferlock'        => ( $args{is_pending_verification} ? 'True' : 'False' ),
                                 'icanncompliant'      => 'True',
                                 'transferlockexpdate' => {},
                             },
