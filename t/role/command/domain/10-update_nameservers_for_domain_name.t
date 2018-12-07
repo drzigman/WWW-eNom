@@ -10,7 +10,7 @@ use Test::Deep;
 use FindBin;
 use lib "$FindBin::Bin/../../../lib";
 use Test::WWW::eNom qw( create_api mock_response );
-use Test::WWW::eNom::Domain qw( create_domain mock_domain_retrieval $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN );
+use Test::WWW::eNom::Domain qw( create_domain mock_domain_retrieval mock_update_nameserver $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN );
 
 use WWW::eNom::PrivateNameServer;
 
@@ -197,44 +197,9 @@ subtest 'Update Nameservers - Remove a Private Nameserver' => sub {
         ip     => '4.2.2.1',
     );
 
-    my $mocked_api = mock_response(
-        method   => 'RegisterNameServer',
-        response => {
-            ErrCount => 0
-        }
-    );
-
-    mock_response(
-        mocked_api => $mocked_api,
-        method     => 'ModifyNS',
-        response   => {
-            ErrCount => 0,
-        }
-    );
-
-    mock_response(
-        mocked_api => $mocked_api,
-        method     => 'CheckNSStatus',
-        response   => {
-            ErrCount => 0,
-            CheckNsStatus => {
-                name      => $private_nameserver->name,
-                ipaddress => $private_nameserver->ip,
-            }
-        }
-    );
-
-    mock_domain_retrieval(
-        mocked_api    => $mocked_api,
-        name          => $domain->name,
-        is_private    => $domain->is_private,
-        is_locked     => $domain->is_locked,,
-        is_auto_renew => $domain->is_auto_renew,
-        nameservers   => [ @initial_nameservers, $private_nameserver->name ],
-        registrant_contact => $domain->registrant_contact,
-        admin_contact      => $domain->admin_contact,
-        technical_contact  => $domain->technical_contact,
-        billing_contact    => $domain->billing_contact,
+    my $mocked_api = mock_update_nameserver(
+        domain      => $domain,
+        nameservers => [ @initial_nameservers, $private_nameserver ],
     );
 
     lives_ok {
@@ -257,11 +222,9 @@ subtest 'Update Nameservers - Remove a Private Nameserver' => sub {
 
     $mocked_api->unmock_all;
 
-    $mocked_api = mock_response(
-        method   => 'RegisterNameServer',
-        response => {
-            ErrCount => 0
-        }
+    $mocked_api = mock_update_nameserver(
+        domain      => $domain,
+        nameservers => \@initial_nameservers,
     );
 
     my $times_called = 0;
@@ -276,35 +239,6 @@ subtest 'Update Nameservers - Remove a Private Nameserver' => sub {
             return \@initial_nameservers;
         }
     });
-
-    mock_response(
-        mocked_api => $mocked_api,
-        method     => 'DeleteNameServer',
-        response   => {
-            ErrCount => 0.
-        }
-    );
-
-    mock_response(
-        mocked_api => $mocked_api,
-        method     => 'ModifyNS',
-        response   => {
-            ErrCount => 0,
-        }
-    );
-
-    mock_domain_retrieval(
-        mocked_api    => $mocked_api,
-        name          => $domain->name,
-        is_private    => $domain->is_private,
-        is_locked     => $domain->is_locked,,
-        is_auto_renew => $domain->is_auto_renew,
-        nameservers   => \@initial_nameservers,
-        registrant_contact => $domain->registrant_contact,
-        admin_contact      => $domain->admin_contact,
-        technical_contact  => $domain->technical_contact,
-        billing_contact    => $domain->billing_contact,
-    );
 
     my $updated_domain;
     lives_ok {

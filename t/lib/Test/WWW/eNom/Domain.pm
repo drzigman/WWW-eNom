@@ -9,18 +9,18 @@ use Test::MockModule;
 use MooseX::Params::Validate;
 use String::Random qw( random_string );
 
-use WWW::eNom::Types qw( Bool Contact DomainName DomainNames PositiveInt Str TransferVerificationMethod );
+use WWW::eNom::Types qw( Bool Contact DomainName DomainNames PositiveInt Str );
 
 use FindBin;
 use lib "$FindBin::Bin/../../../../lib";
 use Test::WWW::eNom qw( create_api mock_response );
+use Test::WWW::eNom::Service qw( mock_purchase_services );
 use Test::WWW::eNom::Contact qw( create_contact mock_get_contacts $DEFAULT_CONTACT $RAW_PROTECTED_CONTACT );
 
 use WWW::eNom::Domain;
-use WWW::eNom::DomainTransfer;
 use WWW::eNom::DomainRequest::Registration;
-use WWW::eNom::DomainRequest::Transfer;
 
+use List::Util qw( first );
 use DateTime;
 use Mozilla::PublicSuffix qw( public_suffix );
 
@@ -61,10 +61,11 @@ Readonly our $NOT_MY_DOMAIN => WWW::eNom::Domain->new(
 
 use Exporter 'import';
 our @EXPORT_OK = qw(
-    create_domain create_transfer
+    create_domain
     retrieve_domain_with_cron_delay
     mock_domain_registration
     mock_domain_retrieval
+    mock_update_nameserver
 
     mock_purchase
     mock_get_domain_info
@@ -72,7 +73,7 @@ our @EXPORT_OK = qw(
     mock_get_reg_lock
     mock_get_whois_contact
     mock_get_renew
-    mock_purchase_services
+    mock_set_renew
     $UNREGISTERED_DOMAIN $NOT_MY_DOMAIN
 );
 
@@ -125,53 +126,6 @@ sub create_domain {
 
 }
 
-sub create_transfer {
-    my ( %args ) = validated_hash(
-        \@_,
-        name                  => { isa => DomainName,  optional => 1 },
-        verification_method   => { isa => TransferVerificationMethod, optional => 1 },
-        is_private            => { isa => Bool,        optional => 1 },
-        is_locked             => { isa => Bool,        optional => 1 },
-        is_auto_renew         => { isa => Bool,        optional => 1 },
-        epp_key               => { isa => Str,         optional => 1 },
-        use_existing_contacts => { isa => Bool,        optional => 1 },
-        registrant_contact    => { isa => Contact,     optional => 1 },
-        admin_contact         => { isa => Contact,     optional => 1 },
-        technical_contact     => { isa => Contact,     optional => 1 },
-        billing_contact       => { isa => Contact,     optional => 1 },
-    );
-
-
-    $args{name}    //= 'test-' . random_string('nnccnnccnnccnnccnnccnncc') . '.com';
-    $args{epp_key} //= '12345';
-
-    if( !exists $args{use_existing_contacts} ) {
-        $args{registrant_contact} //= create_contact();
-        $args{admin_contact}      //= create_contact();
-        $args{technical_contact}  //= create_contact();
-        $args{billing_contact}    //= create_contact();
-    }
-
-    my $api = create_api();
-
-    my $transfer;
-    subtest 'Create Transfer' => sub {
-        my $request;
-        lives_ok {
-            $request = WWW::eNom::DomainRequest::Transfer->new( %args );
-        } 'Lives through creating request object';
-
-        lives_ok {
-            $transfer = $api->transfer_domain( request => $request );
-        } 'Lives through domain transfer';
-
-        note( 'Transfer Order ID: ' . $transfer->order_id );
-        note( 'Transfer Domain Name: ' . $transfer->name );
-    };
-
-    return $transfer;
-}
-
 sub retrieve_domain_with_cron_delay {
     my ( $api, $domain_name ) = pos_validated_list( \@_, { isa => 'WWW::eNom' }, { isa => DomainName } );
 
@@ -213,7 +167,7 @@ sub mock_domain_registration {
     mock_purchase_services( mocked_api => $mocked_api );
 
     mock_domain_retrieval(
-        mocked_api => $mocked_api,
+        mocked_api         => $mocked_api,
         name               => $args{request}->name,
         is_private         => $args{request}->is_private,
         is_locked          => $args{request}->is_locked,
@@ -284,6 +238,86 @@ sub mock_domain_retrieval {
     mock_get_whois_contact(
         mocked_api   => $mocked_api,
         created_date => DateTime->now,
+    );
+
+    return $mocked_api;
+}
+
+sub mock_update_nameserver {
+    my ( %args ) = validated_hash(
+        \@_,
+        mocked_api          => { isa => 'Test::MockModule', optional => 1 },
+        domain              => { isa => 'WWW::eNom::Domain' },
+        nameservers         => { isa => 'ArrayRef' },
+    );
+
+    my $mocked_api = $args{mocked_api} // Test::MockModule->new('WWW::eNom');
+
+    mock_response(
+        mocked_api => $mocked_api,
+        method     => 'ModifyNS',
+        response   => {
+            ErrCount => 0,
+        }
+    );
+
+    mock_response(
+        mocked_api => $mocked_api,
+        method     => 'RegisterNameServer',
+        response   => {
+            ErrCount => 0
+        }
+    );
+
+    $mocked_api->mock( 'CheckNSStatus', sub {
+        my $self   = shift;
+        my $params = shift;
+
+        note('Mocked WWW::eNom->CheckNSStatus');
+
+        my $private_nameserver = first {
+               $_->isa('WWW::eNom::PrivateNameServer')
+            && $_->name eq $params->{CheckNSName}
+        } @{ $args{nameservers} };
+
+        if( $private_nameserver ) {
+            return {
+                ErrCount => 0,
+                CheckNsStatus => {
+                    name      => $private_nameserver->name,
+                    ipaddress => $private_nameserver->ip,
+                }
+            };
+        }
+        else {
+            return {
+                ErrCount => 1,
+                errors   => [ 'Domain cannot be found.' ],
+            };
+        }
+    });
+
+    mock_response(
+        mocked_api => $mocked_api,
+        method     => 'DeleteNameServer',
+        response   => {
+            ErrCount => 0
+        }
+    );
+
+    mock_domain_retrieval(
+        mocked_api    => $mocked_api,
+        name          => $args{domain}->name,
+        is_private    => $args{domain}->is_private,
+        is_locked     => $args{domain}->is_locked,,
+        is_auto_renew => $args{domain}->is_auto_renew,
+        nameservers   => [ map {
+            $_->isa('WWW::eNom::PrivateNameServer') ? $_->name : $_
+        } @{ $args{nameservers} } ],
+        registrant_contact => $args{domain}->registrant_contact,
+        admin_contact      => $args{domain}->admin_contact,
+        technical_contact  => $args{domain}->technical_contact,
+        billing_contact    => $args{domain}->billing_contact,
     );
 
     return $mocked_api;
@@ -390,6 +424,7 @@ sub mock_get_dns {
     ];
 
     return mock_response(
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
         method   => 'GetDNS',
         response => {
             'ErrCount' => '0',
@@ -407,6 +442,7 @@ sub mock_get_reg_lock {
     );
 
     return mock_response(
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
         method   => 'GetRegLock',
         response => {
             'ErrCount' => '0',
@@ -426,6 +462,7 @@ sub mock_get_whois_contact {
     my $created_date = $args{created_date} // DateTime->now;
 
     return mock_response(
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
         method   => 'GetWhoisContact',
         response => {
             'ErrCount'         => '0',
@@ -447,7 +484,8 @@ sub mock_get_renew {
     );
 
     return mock_response(
-        method => 'GetRenew',
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
+        method   => 'GetRenew',
         response => {
             'ErrCount' => '0',
             'errors'   => undef,
@@ -456,18 +494,18 @@ sub mock_get_renew {
     );
 }
 
-sub mock_purchase_services {
+sub mock_set_renew {
     my ( %args ) = validated_hash(
         \@_,
-        mocked_api    => { isa => 'Test::MockModule', optional => 1 },
+        mocked_api => { isa => 'Test::MockModule', optional => 1 },
     );
 
     return mock_response(
-        method => 'PurchaseServices',
+        defined $args{mocked_api} ? ( mocked_api => $args{mocked_api} ) : ( ),
+        method   => 'SetRenew',
         response => {
             'ErrCount' => '0',
             'errors'   => undef,
-            OrderID    => 42,
         },
     );
 }
