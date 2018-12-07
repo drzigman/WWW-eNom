@@ -329,7 +329,7 @@ Robert Stone, C<< <drzigman AT cpan DOT org> >>
 Original version by Simon Cozens C<< <simon at simon-cozens.org> >>.
 Then maintained and expanded by Richard Simões, C<< <rsimoes AT cpan DOT org> >>.
 
-=head1 CONTRIBUTIORS
+=head1 CONTRIBUTORS
 
 Special thanks to the following individuals who provided bug reports or pull requests.
 
