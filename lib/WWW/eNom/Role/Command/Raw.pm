@@ -135,7 +135,7 @@ sub install_methods {
                 return $response;
             }
         );
-    };
+    }
 
     return;
 }
