@@ -81,7 +81,7 @@ sub get_is_domain_locked_by_name {
         });
 
         if( $response->{ErrCount} > 0 ) {
-            if( $response->{RRPText} =~ m/Command blocked/ ) {
+            if( $response->{RRPText} =~ m/Command blocked/ || $response->{RRPText} =~ m/Authorization error/ ) {
                 croak 'Domain owned by someone else';
             }
 
